@@ -24,7 +24,14 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Cell")
-		virtual void divideCell(bool bDivideHorizontally = false);
+		virtual void divideCell();
+
+	//return true if cell is supposed to divide horizontally, false if it should divide vertically
+	UFUNCTION(BlueprintPure, Category = "Cell")
+		virtual bool shouldDivideHorizontally();
+
+	virtual void divideCellHorizontally(); //called by divideCell(bool bDivideHorizontally)
+	virtual void divideCellVertically();//called by divideCell(bool bDivideHorizontally)
 
 	//the cells that are directly attached to this cell
 	UPROPERTY(BlueprintReadOnly, Category = "Cell")
@@ -50,9 +57,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
 		FString StateString;
 
-	//the string the first cell in an organism has
-	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
-		FString RootString;
 
 	//returns the array of substrings that are used in a division to transform this cell into its children
 	UFUNCTION(BlueprintPure, Category = "Cell|Genome")
@@ -64,7 +68,4 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Cell|Genome")
 		void InitFromStateString();
 
-	//this Map saves which strings are going to be new cells and with which StateString these cells are going to be initialized
-	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
-		TMap<FString, FString> GenomeMap;
 };

@@ -42,21 +42,46 @@ TArray<FString> UCellComponent::GetDivideSubstrings(FString InString)
 	return OutArray;
 }
 
-void UCellComponent::divideCell(bool bDivideHorizontally /*= false*/)
+bool UCellComponent::shouldDivideHorizontally()
 {
+	return false;
+}
 
+void UCellComponent::divideCell()
+{
+	if (shouldDivideHorizontally())
+	{
+		divideCellHorizontally();
+	}
+	else
+	{
+		divideCellVertically();
+	}
+}
 
+void UCellComponent::divideCellHorizontally()
+{
 	TArray<UCellComponent*> OutArray = TArray<UCellComponent*>();
 	UCellComponent* LastCell = NULL;
 
 	const TArray<FString> Strings = GetDivideSubstrings(StateString);
 
-	UE_LOG(LogCell, Verbose, TEXT("DividingCell:, %s, #Substrings: %i"),
+
+}
+
+void UCellComponent::divideCellVertically()
+{
+	TArray<UCellComponent*> OutArray = TArray<UCellComponent*>();
+	UCellComponent* LastCell = NULL;
+
+	const TArray<FString> Strings = GetDivideSubstrings(StateString);
+
+	UE_LOG(LogCell, Verbose, TEXT("DividingCellVert:, %s, #Substrings: %i"),
 		*GetNameSafe(this),
 		Strings.Num());
 
 	for (int32 Index = 0; Index < Strings.Num(); ++Index)
-	{	
+	{
 		UCellComponent* NewCell = NULL;
 
 		if (Index < Strings.Num() - 1) //for new cells
@@ -81,7 +106,7 @@ void UCellComponent::divideCell(bool bDivideHorizontally /*= false*/)
 
 			else
 			{
-				UE_LOG(LogCell, VeryVerbose, TEXT("DividingCell:, %s, AddNewCellChild to LastCel: %s "),
+				UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellVert:, %s, AddNewCellChild to LastCel: %s "),
 					*GetNameSafe(LastCell));
 				LastCell->AddNewCellChild(NewCell);
 			}
@@ -96,12 +121,12 @@ void UCellComponent::divideCell(bool bDivideHorizontally /*= false*/)
 			StateString = Strings[Index];
 		}
 
-		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCell:, %s, Created New Cell: %s with Nr: %i for parent: %s"),
+		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellVert:, %s, Created New Cell: %s with Nr: %i for parent: %s"),
 			*GetNameSafe(this),
 			*GetNameSafe(NewCell),
 			Index,
 			*GetNameSafe(NewCell->AttachedCellParent)
-			);
+		);
 	}
 }
 

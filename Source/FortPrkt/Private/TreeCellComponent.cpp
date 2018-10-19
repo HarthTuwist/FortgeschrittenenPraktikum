@@ -7,8 +7,23 @@ DEFINE_LOG_CATEGORY_STATIC(LogCell, VeryVerbose, All);
 
 UTreeCellComponent::UTreeCellComponent()
 {
-	StandardDrawVector = FVector(0.0f, 150.0f, 0.0f);
 	NewCellClass = UTreeCellComponent::StaticClass();
+}
+
+void UTreeCellComponent::BeginPlay()
+{
+	TArray<UActorComponent*> CompArray = GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+	if (CompArray.Num() > 0)
+	{
+		OwnersTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
+	}
+
+	else
+	{
+		OwnersTreeInfos = nullptr;
+	}
+
+	Super::BeginPlay();
 }
 
 TArray<FString> UTreeCellComponent::GetDivideSubstrings(FString InString)
@@ -30,7 +45,8 @@ void UTreeCellComponent::drawCellRecursively()
 	}
 
 	DrawOriginPosition = Cast<UTreeCellComponent>(AttachedCellParent) != NULL ? (Cast<UTreeCellComponent>(AttachedCellParent))->DrawEndPosition : FVector(0.0f, 0.0f, -1.0f);
-	DrawEndPosition = DrawOriginPosition + StandardDrawVector;
+	FVector const DrawDirection = OwnersTreeInfos ? OwnersTreeInfos->StandardDrawVector : FVector(20.0f, 20.0f, 20.0f);
+	DrawEndPosition = DrawOriginPosition + DrawDirection;
 
 
 	DrawnComponent = NewObject<USplineMeshComponent>(GetOwner());
@@ -42,26 +58,48 @@ void UTreeCellComponent::drawCellRecursively()
 
 	//DrawnComponent->SetupAttachment(this);
 
-	if (StaticMeshForVisuals->IsValidLowLevel())
+	if (OwnersTreeInfos && OwnersTreeInfos->StaticMeshForVisuals->IsValidLowLevel())
 	{
 		UE_LOG(LogCell, VeryVerbose, TEXT("DrawCell, Name:, %s, OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
 			*GetNameSafe(this),
 			DrawOriginPosition.X, DrawOriginPosition.Y, DrawOriginPosition.Z,
 			DrawEndPosition.X, DrawEndPosition.Y, DrawEndPosition.Z);
 
-		DrawnComponent->SetStaticMesh(StaticMeshForVisuals);
+		DrawnComponent->SetStaticMesh(OwnersTreeInfos->StaticMeshForVisuals);
 		DrawnComponent->SetStartPosition(DrawOriginPosition);
 		DrawnComponent->SetEndPosition(DrawEndPosition);
 		DrawnComponent->SetStartTangent((DrawEndPosition - DrawOriginPosition).GetSafeNormal());
 		DrawnComponent->SetEndTangent((DrawEndPosition - DrawOriginPosition).GetSafeNormal());
-		DrawnComponent->SetStartScale(FVector2D(2.0f, 2.0f));
+		
+		float SingleScale = OwnersTreeInfos->StandardCellWidth;
+		
+		DrawnComponent->SetStartScale(FVector2D(SingleScale, SingleScale));
+		DrawnComponent->SetEndScale(FVector2D(SingleScale, SingleScale));
 
-		DrawnComponent->SetForwardAxis(ESplineMeshAxis::Z);
-
-		//DrawnComponent->SetStartTangent((DrawEndPosition - DrawOriginPosition).GetSafeNormal()*150);
-		//DrawnComponent->SetEndTangent((DrawOriginPosition - DrawEndPosition).GetSafeNormal()*150);
+		DrawnComponent->SetForwardAxis(OwnersTreeInfos->SplineMeshForwardAxis);
+		DrawnComponent->SetSplineUpDir(OwnersTreeInfos->SplineMeshUpDir);
 	}
 
 
 	Super::drawCellRecursively();
+}
+
+bool UTreeCellComponent::shouldDivideHorizontally()
+{
+	if (OwnersTreeInfos && !OwnersTreeInfos->DivideHorizMarker.IsEmpty()
+		&& StateString.Contains(OwnersTreeInfos->DivideHorizMarker))
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+	
+}
+
+void UTreeCellComponent::InitWithString(FString InString)
+{
+	Super::InitWithString(InString);
 }

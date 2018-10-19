@@ -36,7 +36,7 @@ void UDesignatedRootCellComponent::drawCellRecursively()
 	}
 }
 
-void UDesignatedRootCellComponent::divideCell(bool bDivideHorizontally)
+void UDesignatedRootCellComponent::divideCell()
 {
 	//do nothing her; don't divide the designated root
 }
