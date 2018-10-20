@@ -16,6 +16,12 @@ void UTreeCellComponent::BeginPlay()
 	if (CompArray.Num() > 0)
 	{
 		OwnersTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
+
+		if (StateString.Equals(TEXT("@@@")) && !OwnersTreeInfos->RootString.IsEmpty())
+		{
+			StateString = OwnersTreeInfos->RootString;
+		}
+		
 	}
 
 	else
@@ -30,8 +36,17 @@ TArray<FString> UTreeCellComponent::GetDivideSubstrings(FString InString)
 {
 	TArray<FString> OutArray = TArray<FString>();
 
-	OutArray.Add(TEXT("A"));
-	OutArray.Add(TEXT("A"));
+	if (StateString.Contains(TEXT("H")))
+	{
+		OutArray.Add(TEXT("A"));
+		OutArray.Add(TEXT("B"));
+	}
+
+	else
+	{
+		OutArray.Add(StateString);
+		OutArray.Add(StateString);
+	}
 
 	return OutArray;
 }
@@ -45,7 +60,16 @@ void UTreeCellComponent::drawCellRecursively()
 	}
 
 	DrawOriginPosition = Cast<UTreeCellComponent>(AttachedCellParent) != NULL ? (Cast<UTreeCellComponent>(AttachedCellParent))->DrawEndPosition : FVector(0.0f, 0.0f, -1.0f);
-	FVector const DrawDirection = OwnersTreeInfos ? OwnersTreeInfos->StandardDrawVector : FVector(20.0f, 20.0f, 20.0f);
+	FVector DrawDirection = FVector::ZeroVector;
+	if (StateString.Contains(TEXT("A")))
+	{
+		DrawDirection = OwnersTreeInfos ? (OwnersTreeInfos->StandardDrawVector).RotateAngleAxis(15, FVector(0.0f, 1.0f, 0.0f)) : FVector(-42.0f, -42.0f, -42.0f);
+	}
+
+	else
+	{
+		DrawDirection = OwnersTreeInfos ? (OwnersTreeInfos->StandardDrawVector).RotateAngleAxis(-15, FVector(0.0f, 1.0f, 0.0f)) : FVector(-42.0f, -42.0f, -42.0f);
+	}
 	DrawEndPosition = DrawOriginPosition + DrawDirection;
 
 
@@ -57,14 +81,14 @@ void UTreeCellComponent::drawCellRecursively()
 	
 
 	//DrawnComponent->SetupAttachment(this);
+	UE_LOG(LogCell, VeryVerbose, TEXT("DrawTreeCell, Name:, %s, StateString: %s OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
+		*GetNameSafe(this),
+		*StateString,
+		DrawOriginPosition.X, DrawOriginPosition.Y, DrawOriginPosition.Z,
+		DrawEndPosition.X, DrawEndPosition.Y, DrawEndPosition.Z);
 
 	if (OwnersTreeInfos && OwnersTreeInfos->StaticMeshForVisuals->IsValidLowLevel())
 	{
-		UE_LOG(LogCell, VeryVerbose, TEXT("DrawCell, Name:, %s, OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
-			*GetNameSafe(this),
-			DrawOriginPosition.X, DrawOriginPosition.Y, DrawOriginPosition.Z,
-			DrawEndPosition.X, DrawEndPosition.Y, DrawEndPosition.Z);
-
 		DrawnComponent->SetStaticMesh(OwnersTreeInfos->StaticMeshForVisuals);
 		DrawnComponent->SetStartPosition(DrawOriginPosition);
 		DrawnComponent->SetEndPosition(DrawEndPosition);

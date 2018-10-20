@@ -10,6 +10,7 @@ UOrganismInformationHolder::UOrganismInformationHolder()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	RootString = TEXT(""); //intentionally leave this empty
 	// ...
 }
 
@@ -17,10 +18,7 @@ UOrganismInformationHolder::UOrganismInformationHolder()
 // Called when the game starts
 void UOrganismInformationHolder::BeginPlay()
 {
-	Super::BeginPlay();
-
-	// ...
-	
+	Super::BeginPlay();	
 }
 
 

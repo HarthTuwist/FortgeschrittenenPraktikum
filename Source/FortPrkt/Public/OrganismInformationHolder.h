@@ -26,12 +26,11 @@ public:
 
 public:
 	//this Map saves which strings are going to be new cells and with which StateString these cells are going to be initialized
-	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		TMap<FString, FString> GenomeMap;
 
-	//the string the first cell in an organism has
-	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
+
+	//at begin play, if the statestring is "@@@" it is replaced with this if not empty
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString RootString;
-		
-	
 };

@@ -13,6 +13,7 @@ UCellComponent::UCellComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	NewCellClass = this->GetClass();
+	StateString = TEXT("@@@");
 	// ...
 }
 
@@ -36,8 +37,8 @@ TArray<FString> UCellComponent::GetDivideSubstrings(FString InString)
 {
 	TArray<FString> OutArray = TArray<FString>();
 
-	OutArray.Add(TEXT("A"));
-	OutArray.Add(TEXT("A"));
+	OutArray.Add(TEXT("@@"));
+	OutArray.Add(TEXT("@@"));
 
 	return OutArray;
 }
@@ -62,10 +63,44 @@ void UCellComponent::divideCell()
 void UCellComponent::divideCellHorizontally()
 {
 	TArray<UCellComponent*> OutArray = TArray<UCellComponent*>();
-	UCellComponent* LastCell = NULL;
 
 	const TArray<FString> Strings = GetDivideSubstrings(StateString);
 
+	UE_LOG(LogCell, Verbose, TEXT("DividingCellHorz:, %s, StateString: %s #Substrings: %i"),
+		*GetNameSafe(this),
+		*StateString,
+		Strings.Num());
+
+	for (int32 Index = 0; Index < Strings.Num(); ++Index)
+	{
+		UCellComponent* NewCell = NULL;
+
+		if (Index < Strings.Num() - 1) //for new cells
+		{
+			NewCell = NewObject<UCellComponent>(GetOwner(), NewCellClass, NAME_None, RF_NoFlags, nullptr, false, nullptr);
+			NewCell->SetMobility(EComponentMobility::Movable);
+			NewCell->SetupAttachment(this);
+			NewCell->RegisterComponent();
+
+			NewCell->StateString = Strings[Index];
+
+			AttachedCellParent->AddNewCellChild(NewCell);
+
+			OutArray.Add(NewCell);
+		}
+		else //for this cell that is going to remain a cell but might change it's type
+		{
+			NewCell = this;
+			StateString = Strings[Index];
+		}
+
+		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellHoriz, %s, Created New Cell: %s with Nr: %i for parent: %s"),
+			*GetNameSafe(this),
+			*GetNameSafe(NewCell),
+			Index,
+			*GetNameSafe(NewCell->AttachedCellParent)
+		);
+	}
 
 }
 
@@ -76,8 +111,9 @@ void UCellComponent::divideCellVertically()
 
 	const TArray<FString> Strings = GetDivideSubstrings(StateString);
 
-	UE_LOG(LogCell, Verbose, TEXT("DividingCellVert:, %s, #Substrings: %i"),
+	UE_LOG(LogCell, Verbose, TEXT("DividingCellVert: %s, StateString: %s #Substrings: %i"),
 		*GetNameSafe(this),
+		*StateString,
 		Strings.Num());
 
 	for (int32 Index = 0; Index < Strings.Num(); ++Index)
@@ -155,7 +191,7 @@ void UCellComponent::drawCellRecursively()
 	//do actual visuals here, before recursive call!
 		//no visuals in base implementation
 
-	UE_LOG(LogCell, VeryVerbose, TEXT("DrawingCell:, %s, NrChildren: %i"),
+	UE_LOG(LogCell, VeryVerbose, TEXT("Drawing children of cell:, %s, NrChildren: %i"),
 		*GetNameSafe(this),
 		AttachedCellChildren.Num());
 
