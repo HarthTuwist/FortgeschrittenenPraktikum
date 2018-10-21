@@ -153,7 +153,13 @@ void UCellComponent::divideCellVertically()
 		else //for this cell that is going to remain a cell but might change it's type
 		{
 			NewCell = this;
-			LastCell->AddNewCellChild(this);
+
+			//check this as we might be the only cell without any LastCell existing
+			if (LastCell != nullptr)
+			{
+				LastCell->AddNewCellChild(this);
+			}
+			
 			StateString = Strings[Index];
 		}
 
@@ -200,6 +206,25 @@ void UCellComponent::drawCellRecursively()
 	{
 		c->drawCellRecursively();
 	}
+}
+
+TArray<FString> UCellComponent::GetMapDivideStrings(FString InString, TMap<FString, FString>* ReplacementMap, FString Separator)
+{
+	const FString* rawValueString = ReplacementMap->Find(InString); //find value in our TMap
+
+	TArray<FString> OutArray = TArray<FString>();
+
+	if (rawValueString != nullptr)
+	{
+		rawValueString->ParseIntoArray(OutArray, *Separator, true);
+	}
+	
+	else
+	{
+		OutArray.Add(TEXT("@"));
+	}
+
+	return OutArray;
 }
 
 void UCellComponent::InitWithString(FString InString)

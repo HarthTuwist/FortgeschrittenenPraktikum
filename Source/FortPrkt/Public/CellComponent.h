@@ -57,10 +57,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
 		FString StateString;
 
-
 	//returns the array of substrings that are used in a division to transform this cell into its children
 	UFUNCTION(BlueprintPure, Category = "Cell|Genome")
 		virtual TArray<FString> GetDivideSubstrings(FString InString);
+
+	//returns the array of substrings intended for division if following the GenomeMap replacement scheme
+		virtual TArray<FString> GetMapDivideStrings(FString InString, TMap<FString, FString>* ReplacementMap, FString Separator = TEXT(","));
 
 	UFUNCTION(BlueprintCallable, Category = "Cell|Genome")
 		virtual void InitWithString(FString InString);

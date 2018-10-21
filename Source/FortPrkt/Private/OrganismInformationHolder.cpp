@@ -11,6 +11,8 @@ UOrganismInformationHolder::UOrganismInformationHolder()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	RootString = TEXT(""); //intentionally leave this empty
+	bUseGenomeMapReplacement = false;
+	GenomeMapValueSeparator = TEXT(",");
 	// ...
 }
 

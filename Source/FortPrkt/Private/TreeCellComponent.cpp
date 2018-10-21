@@ -34,6 +34,30 @@ void UTreeCellComponent::BeginPlay()
 
 TArray<FString> UTreeCellComponent::GetDivideSubstrings(FString InString)
 {
+	//if we are using GenomeMap scheme, calculate children by this
+	if (OwnersTreeInfos->bUseGenomeMapReplacement)
+	{
+		TArray<FString> ArrayFromMap = GetMapDivideStrings(InString, &OwnersTreeInfos->GenomeMap, OwnersTreeInfos->GenomeMapValueSeparator);
+		if (ArrayFromMap.Num()> 0 && ArrayFromMap[0] != TEXT("@"))
+		{
+			return ArrayFromMap;
+		}
+
+		else
+		{
+			//in case a StateString was reached that isn't in the Map, do safety behavior 
+			UE_LOG(LogCell, Warning, TEXT("GetMapDivideStrings returned @ for TreeCell: %s, StateString: %s, keeping StateString"),
+				*GetNameSafe(this),
+				*StateString);
+
+			ArrayFromMap.Empty();
+			ArrayFromMap.Add(StateString);
+
+			return ArrayFromMap;
+		}
+	}
+
+	//else
 	TArray<FString> OutArray = TArray<FString>();
 
 	if (StateString.Contains(TEXT("H")))
