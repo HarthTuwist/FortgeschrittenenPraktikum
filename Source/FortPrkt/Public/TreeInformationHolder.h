@@ -39,4 +39,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString DivideHorizMarker;
 
+	//this is used to determine the angle between two branches 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float BaseBranchingAngleX;
+
+	//this is used to determine the angle between two branches 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float BaseBranchingAngleY;
+
+	//if this is in state string, this cell should grow left
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		FString GrowLeftMarker;
+
+	//if this is in state string, this cell should grow right
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		FString GrowRightMarker;
 };

@@ -83,19 +83,85 @@ void UTreeCellComponent::drawCellRecursively()
 		DrawnComponent->DestroyComponent();
 	}
 
-	DrawOriginPosition = Cast<UTreeCellComponent>(AttachedCellParent) != NULL ? (Cast<UTreeCellComponent>(AttachedCellParent))->DrawEndPosition : FVector(0.0f, 0.0f, -1.0f);
-	FVector DrawDirection = FVector::ZeroVector;
-	if (StateString.Contains(TEXT("A")))
+	UTreeCellComponent* ParentAsTreeCell = Cast<UTreeCellComponent>(AttachedCellParent);
+
+	
+	if (ParentAsTreeCell == nullptr)
 	{
-		DrawDirection = OwnersTreeInfos ? (OwnersTreeInfos->StandardDrawVector).RotateAngleAxis(15, FVector(0.0f, 1.0f, 0.0f)) : FVector(-42.0f, -42.0f, -42.0f);
+
+
+		//we should never have no parent. At max parent should be a designatedRootCell (== not a tree cell)
+		if (AttachedCellParent)
+		{
+			DrawOriginPosition = FVector(0.0f, 0.0f, 0.1f);
+		}
+
+		else
+		{
+			UE_LOG(LogCell, Error, TEXT("TreeCell: %s can't divide, no parent, StateString: %s"),
+				*GetNameSafe(this),
+				*StateString);
+			return;
+		}
+		
 	}
 
 	else
 	{
-		DrawDirection = OwnersTreeInfos ? (OwnersTreeInfos->StandardDrawVector).RotateAngleAxis(-15, FVector(0.0f, 1.0f, 0.0f)) : FVector(-42.0f, -42.0f, -42.0f);
+		DrawOriginPosition = ParentAsTreeCell->DrawEndPosition;
 	}
-	DrawEndPosition = DrawOriginPosition + DrawDirection;
 
+	FVector DrawDirection = FVector::ZeroVector;
+
+	if (OwnersTreeInfos != nullptr)
+	{	
+		DrawDirection = OwnersTreeInfos->StandardDrawVector;
+
+		if (ParentAsTreeCell == nullptr) //if we not have a TreeCell as parent but something else (usually the designated root)
+		{
+			RotationAngleX = 0.0f;
+			RotationAngleY = 0.0f;
+
+			//grow straight up into the air, so don't change DrawDirection
+		}
+		else 
+		{
+			float bNegativeRotation = 1.0f; //use this as a fake bool to multiply rotation if we rotate left
+			float bDivergeFromParent = 0.0f; //use a fake bool here, too, for consistency. Signals that we we don't just want to grow into the direction of the parent
+
+					
+
+			if (StateString.Contains(OwnersTreeInfos->GrowRightMarker) || StateString.Contains((OwnersTreeInfos->GrowLeftMarker)))
+			{
+				bDivergeFromParent = 1.0f;
+
+				if (StateString.Contains(OwnersTreeInfos->GrowLeftMarker)) //invert rotation if rotating left
+				{
+					bNegativeRotation = -1.0f;
+				}
+			}
+
+			else //grow straight
+			{
+				//don't do anything here, bDivergeFromParent needs to be 0
+			}
+
+			RotationAngleX = ParentAsTreeCell->RotationAngleX + bNegativeRotation * bDivergeFromParent * OwnersTreeInfos->BaseBranchingAngleX;
+			RotationAngleY = ParentAsTreeCell->RotationAngleY + bNegativeRotation * bDivergeFromParent * OwnersTreeInfos->BaseBranchingAngleY;
+
+			//actually rotate DrawDirection
+			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
+			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleY, FVector(0.0f, 1.0f, 0.0f));
+		}
+
+		DrawEndPosition = DrawOriginPosition + DrawDirection;
+
+	}
+
+	else //a dummy value in case OwnersTreeInfos doesn't exist
+	{
+		DrawDirection = FVector(-42.0f, -42.0f, -42.0f);
+	}
 
 	DrawnComponent = NewObject<USplineMeshComponent>(GetOwner());
 	DrawnComponent->SetMobility(EComponentMobility::Movable);

@@ -10,8 +10,9 @@ void UDesignatedRootCellComponent::BeginPlay()
 
 	TArray<UActorComponent*> AllOtherCells = GetOwner()->GetComponentsByClass(UCellComponent::StaticClass());
 
-	UE_LOG(LogCell, VeryVerbose, TEXT("RootBeginPlay, Name:, %s, LengthOf AlLotherCells(self included): %o"),
+	UE_LOG(LogCell, VeryVerbose, TEXT("RootBeginPlay, Name:, %s, Owner: %s, LengthOf AlLotherCells(self included): %o"),
 		*GetNameSafe(this),
+		*GetNameSafe(GetOwner()),
 		AllOtherCells.Num());
 
 	AllOtherCells.Remove(this);

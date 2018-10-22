@@ -12,4 +12,9 @@ UTreeInformationHolder::UTreeInformationHolder()
 	
 	RootString = TEXT("A");
 	DivideHorizMarker = TEXT("H");
+	GrowLeftMarker = TEXT("L");
+	GrowRightMarker = TEXT("R");
+
+	BaseBranchingAngleX = 15.0f;
+	BaseBranchingAngleY = 15.0f;
 }

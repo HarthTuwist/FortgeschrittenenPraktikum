@@ -94,10 +94,11 @@ void UCellComponent::divideCellHorizontally()
 			StateString = Strings[Index];
 		}
 
-		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellHoriz, %s, Created New Cell: %s with Nr: %i for parent: %s"),
+		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellHoriz, %s, Created New Cell: %s with Nr: %i and StateString: %s, for parent: %s"),
 			*GetNameSafe(this),
 			*GetNameSafe(NewCell),
 			Index,
+			*(NewCell->StateString),
 			*GetNameSafe(NewCell->AttachedCellParent)
 		);
 	}
@@ -163,10 +164,11 @@ void UCellComponent::divideCellVertically()
 			StateString = Strings[Index];
 		}
 
-		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellVert:, %s, Created New Cell: %s with Nr: %i for parent: %s"),
+		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellVert:, %s, Created New Cell: %s with Nr: %i and StateString: %s for parent: %s"),
 			*GetNameSafe(this),
 			*GetNameSafe(NewCell),
 			Index,
+			*(NewCell->StateString),
 			*GetNameSafe(NewCell->AttachedCellParent)
 		);
 	}

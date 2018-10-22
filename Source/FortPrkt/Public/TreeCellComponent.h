@@ -27,18 +27,26 @@ public:
 
 	//Draw Stuff
 	TArray<FString> GetDivideSubstrings(FString InString) override;
-	UPROPERTY(BlueprintReadOnly, Category = "Cell")
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		USplineMeshComponent* DrawnComponent;
 
 	virtual void drawCellRecursively() override;
 
 	//where the draw, i.e. the SplineMesh, is going to start
-	UPROPERTY(BlueprintReadOnly, Category = "Genome")
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		FVector DrawOriginPosition;
 
 	//where the draw, i.e the SplineMesh, is going to end
-	UPROPERTY(BlueprintReadOnly, Category = "Genome")
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		FVector DrawEndPosition;
+
+	//how many degrees the growth of this cell is rotated around the X axis
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
+		float RotationAngleX;
+
+	//how many degrees the growth of this cell is rotated around the X axis
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
+		float RotationAngleY;
 
 
 	virtual bool shouldDivideHorizontally() override;
