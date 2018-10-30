@@ -70,4 +70,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Cell|Genome")
 		void InitFromStateString();
 
+	//counts how often CountedString appears in BaseString
+	static int32 CountStringInString(const FString* CountedString, const FString* BaseString);
 };

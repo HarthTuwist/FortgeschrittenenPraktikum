@@ -54,4 +54,12 @@ public:
 	//if this is in state string, this cell should grow right
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString GrowRightMarker;
+
+	//if this is in state string, this cell should grow forward
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		FString GrowForwardMarker;
+
+	//if this is in state string, this cell should grow back
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		FString GrowBackMarker;
 };

@@ -22,6 +22,24 @@ UCellComponent::UCellComponent()
 void UCellComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//keep this test in here for now
+	/*
+	TArray<FString> SArray = TArray<FString>();
+	SArray.Add(TEXT("LLLL"));
+	SArray.Add(TEXT("XASDFLLXLLX"));
+	SArray.Add(TEXT(""));
+	SArray.Add(TEXT("XLXXXXLXXXLXXL"));
+	SArray.Add(TEXT("XLXXXXLXXXLXX"));
+
+	FString SearchString = TEXT("LL");
+	for (FString s : SArray)
+	{
+		UE_LOG(LogCell, Verbose, TEXT("Counting L in String: %s, result: %o"),
+			*s,
+			CountStringInString(&SearchString, &s));
+	}
+	}*/
 }
 
 
@@ -237,4 +255,26 @@ void UCellComponent::InitWithString(FString InString)
 void UCellComponent::InitFromStateString()
 {
 	InitWithString(StateString);
+}
+
+int32 UCellComponent::CountStringInString(const FString * CountedString, const FString * BaseString)
+{
+	if (CountedString == nullptr || BaseString == nullptr ||
+		CountedString->Len() == 0 || BaseString->Len() == 0)
+	{
+		return 0;
+	}
+	
+	int32 outInt = 0;
+
+	for (int i = 0; i < BaseString->Len() - CountedString->Len() +1; i++)
+	{
+		if ((BaseString->Mid(i, CountedString->Len()).Equals(*CountedString)))
+		{
+			outInt++;
+			i += CountedString->Len() - 1; //skip the string in the search if we find one
+		}
+	}
+
+	return outInt;
 }

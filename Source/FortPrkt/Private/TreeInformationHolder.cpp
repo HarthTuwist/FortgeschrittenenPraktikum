@@ -14,6 +14,8 @@ UTreeInformationHolder::UTreeInformationHolder()
 	DivideHorizMarker = TEXT("H");
 	GrowLeftMarker = TEXT("L");
 	GrowRightMarker = TEXT("R");
+	GrowForwardMarker = TEXT("F");
+	GrowBackMarker = TEXT("B");
 
 	BaseBranchingAngleX = 15.0f;
 	BaseBranchingAngleY = 15.0f;

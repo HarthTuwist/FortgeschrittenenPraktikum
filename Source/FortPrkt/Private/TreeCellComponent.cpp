@@ -126,28 +126,41 @@ void UTreeCellComponent::drawCellRecursively()
 		}
 		else 
 		{
-			float bNegativeRotation = 1.0f; //use this as a fake bool to multiply rotation if we rotate left
-			float bDivergeFromParent = 0.0f; //use a fake bool here, too, for consistency. Signals that we we don't just want to grow into the direction of the parent
+			float bNegativeXRotation = 1.0f; //use this as a fake bool to multiply rotation if we rotate left
+			float bNegativeYRotation = 1.0f; //use this as a fake bool to multiply rotation if we rotate backwards
+			float XDivergionFromParent = 0.0f; //the diversion from the parent angle in X axis
+			float YDivergionFromParent = 0.0f; //the diversion from the parent angle in > axis
+			
 
-					
-
-			if (StateString.Contains(OwnersTreeInfos->GrowRightMarker) || StateString.Contains((OwnersTreeInfos->GrowLeftMarker)))
+			//X Divergion
+			if (StateString.Contains(OwnersTreeInfos->GrowRightMarker))
 			{
-				bDivergeFromParent = 1.0f;
-
-				if (StateString.Contains(OwnersTreeInfos->GrowLeftMarker)) //invert rotation if rotating left
-				{
-					bNegativeRotation = -1.0f;
-				}
+				XDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowRightMarker, &StateString);
 			}
 
-			else //grow straight
+			else if (StateString.Contains(OwnersTreeInfos->GrowLeftMarker))
 			{
-				//don't do anything here, bDivergeFromParent needs to be 0
+				XDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowLeftMarker, &StateString);
+				bNegativeXRotation = -1.0f;
 			}
 
-			RotationAngleX = ParentAsTreeCell->RotationAngleX + bNegativeRotation * bDivergeFromParent * OwnersTreeInfos->BaseBranchingAngleX;
-			RotationAngleY = ParentAsTreeCell->RotationAngleY + bNegativeRotation * bDivergeFromParent * OwnersTreeInfos->BaseBranchingAngleY;
+			//Y Divergion
+			if (StateString.Contains(OwnersTreeInfos->GrowForwardMarker))
+			{
+				YDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowForwardMarker, &StateString);
+			}
+
+			else if (StateString.Contains(OwnersTreeInfos->GrowBackMarker))
+			{
+				YDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowBackMarker, &StateString);
+				bNegativeYRotation = -1.0f;
+			}
+			 
+			// if grow straight
+				//don't do anything here, angles need to be 0
+
+			RotationAngleX = ParentAsTreeCell->RotationAngleX + bNegativeXRotation * XDivergionFromParent * OwnersTreeInfos->BaseBranchingAngleX;
+			RotationAngleY = ParentAsTreeCell->RotationAngleY + bNegativeYRotation * YDivergionFromParent * OwnersTreeInfos->BaseBranchingAngleY;
 
 			//actually rotate DrawDirection
 			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
@@ -192,6 +205,8 @@ void UTreeCellComponent::drawCellRecursively()
 
 		DrawnComponent->SetForwardAxis(OwnersTreeInfos->SplineMeshForwardAxis);
 		DrawnComponent->SetSplineUpDir(OwnersTreeInfos->SplineMeshUpDir);
+
+		DrawnComponent->SetCastShadow(false);
 	}
 
 
