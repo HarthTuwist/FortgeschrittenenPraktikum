@@ -28,7 +28,7 @@ public:
 	//Draw Stuff
 	TArray<FString> GetDivideSubstrings(FString InString) override;
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
-		USplineMeshComponent* DrawnComponent;
+		UStaticMeshComponent* DrawnComponent;
 
 	virtual void drawCellRecursively() override;
 
@@ -48,6 +48,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		float RotationAngleY;
 
+	//this is used by the static mesh instance to draw this cell
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
+		FTransform DrawTransform;
 
 	virtual bool shouldDivideHorizontally() override;
 

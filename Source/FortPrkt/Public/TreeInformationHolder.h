@@ -22,9 +22,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Genome")
 		float StandardCellWidth;
 
-	//this is UP grow direction * length of a cell in this direction
+	//DEPRECATED this is UP grow direction * length of a cell in this direction
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FVector StandardDrawVector;
+
+	//length of a cell in grow direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float StandardDrawLength;
+
+	//Up Grow Direction
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		FVector StandardDrawDirection;
+
+	//height of the drawn mesh
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float ZAxisHeightOfDrawnMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		TEnumAsByte<ESplineMeshAxis::Type> SplineMeshForwardAxis;

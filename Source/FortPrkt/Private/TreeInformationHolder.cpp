@@ -6,7 +6,12 @@ UTreeInformationHolder::UTreeInformationHolder()
 {
 
 	StandardCellWidth = 0.5f;
+
 	StandardDrawVector = FVector(0.0f, 0.0f, 50.0f);
+	StandardDrawDirection = FVector(0.0f, 0.0f, 1.0f);
+	StandardDrawLength = 50.0f;
+	ZAxisHeightOfDrawnMesh = 100.0f;
+
 	SplineMeshForwardAxis = ESplineMeshAxis::Z; //use upward axis to draw
 	SplineMeshUpDir = FVector(1.0f, 0.0f, 0.0f); //not z, as we want to draw towards + z and splines can't do that for UE bugs or deeper reasons unbeknownst
 	

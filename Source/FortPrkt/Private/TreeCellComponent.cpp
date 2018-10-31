@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TreeCellComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Components/SceneComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCell, VeryVerbose, All);
@@ -84,7 +85,7 @@ void UTreeCellComponent::drawCellRecursively()
 	}
 
 	UTreeCellComponent* ParentAsTreeCell = Cast<UTreeCellComponent>(AttachedCellParent);
-
+	FTransform ParentCellTransform; //the transform of our parent or 0 if it does not exist
 	
 	if (ParentAsTreeCell == nullptr)
 	{
@@ -94,6 +95,8 @@ void UTreeCellComponent::drawCellRecursively()
 		if (AttachedCellParent)
 		{
 			DrawOriginPosition = FVector(0.0f, 0.0f, 0.1f);
+
+			ParentCellTransform = FTransform(GetOwner()->GetActorRotation(), GetOwner()->GetActorLocation()); //identity transform
 		}
 
 		else
@@ -109,6 +112,7 @@ void UTreeCellComponent::drawCellRecursively()
 	else
 	{
 		DrawOriginPosition = ParentAsTreeCell->DrawEndPosition;
+		ParentCellTransform = ParentAsTreeCell->DrawTransform;
 	}
 
 	FVector DrawDirection = FVector::ZeroVector;
@@ -121,6 +125,7 @@ void UTreeCellComponent::drawCellRecursively()
 		{
 			RotationAngleX = 0.0f;
 			RotationAngleY = 0.0f;
+
 
 			//grow straight up into the air, so don't change DrawDirection
 		}
@@ -165,6 +170,12 @@ void UTreeCellComponent::drawCellRecursively()
 			//actually rotate DrawDirection
 			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
 			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleY, FVector(0.0f, 1.0f, 0.0f));
+
+
+
+
+
+
 		}
 
 		DrawEndPosition = DrawOriginPosition + DrawDirection;
@@ -176,7 +187,8 @@ void UTreeCellComponent::drawCellRecursively()
 		DrawDirection = FVector(-42.0f, -42.0f, -42.0f);
 	}
 
-	DrawnComponent = NewObject<USplineMeshComponent>(GetOwner());
+	//DrawnComponent = NewObject<USplineMeshComponent>(GetOwner());
+	DrawnComponent = NewObject<UStaticMeshComponent>(GetOwner());
 	DrawnComponent->SetMobility(EComponentMobility::Movable);
 //	DrawnComponent->SetupAttachment(this);
 	DrawnComponent->SetupAttachment(GetOwner()->GetRootComponent());
@@ -184,15 +196,17 @@ void UTreeCellComponent::drawCellRecursively()
 	
 
 	//DrawnComponent->SetupAttachment(this);
-	UE_LOG(LogCell, VeryVerbose, TEXT("DrawTreeCell, Name:, %s, StateString: %s OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
+	/*UE_LOG(LogCell, VeryVerbose, TEXT("DrawTreeCell, Name:, %s, StateString: %s OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
 		*GetNameSafe(this),
 		*StateString,
 		DrawOriginPosition.X, DrawOriginPosition.Y, DrawOriginPosition.Z,
 		DrawEndPosition.X, DrawEndPosition.Y, DrawEndPosition.Z);
+		*/
 
 	if (OwnersTreeInfos && OwnersTreeInfos->StaticMeshForVisuals->IsValidLowLevel())
 	{
 		DrawnComponent->SetStaticMesh(OwnersTreeInfos->StaticMeshForVisuals);
+		/*
 		DrawnComponent->SetStartPosition(DrawOriginPosition);
 		DrawnComponent->SetEndPosition(DrawEndPosition);
 		DrawnComponent->SetStartTangent((DrawEndPosition - DrawOriginPosition).GetSafeNormal());
@@ -205,9 +219,43 @@ void UTreeCellComponent::drawCellRecursively()
 
 		DrawnComponent->SetForwardAxis(OwnersTreeInfos->SplineMeshForwardAxis);
 		DrawnComponent->SetSplineUpDir(OwnersTreeInfos->SplineMeshUpDir);
+	*/
+		float SingleScale = OwnersTreeInfos->StandardCellWidth;
+		//const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength * StandardDrawUpVector * ParentCellTransform.GetScale3D().Z;
+		const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength;
+	
+		const FVector Scale = FVector(
+			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh,
+			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh,
+			OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh);
 
+		const FVector Location =
+			ParentCellTransform.GetLocation()
+			+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector);
+
+		//const FQuat NewRotation = 
+		FQuat Rotation = /*NewRotation * */ ParentCellTransform.GetRotation();
+		Rotation = FRotator(0.0f, 0.0f, 0.0f).Quaternion();
+		
+		FVector asdf = GetOwner()->GetActorForwardVector();
+
+		asdf = asdf.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
+		asdf = asdf.RotateAngleAxis(RotationAngleY, FVector(0.0f, 1.0f, 0.0f));
+
+		DrawTransform = FTransform(FRotator(RotationAngleY,0.0f, RotationAngleX), Location, Scale);
+		//DrawTransform = FTransform(UKismetMathLibrary::FindLookAtRotation(asdf, FVector::ZeroVector), Location, Scale);
+
+		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, StateString: %s Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
+			*GetNameSafe(this),
+			*StateString,
+			DrawTransform.GetLocation().X, DrawTransform.GetLocation().Y, DrawTransform.GetLocation().Z,
+			DrawTransform.GetScale3D().X, DrawTransform.GetScale3D().Y, DrawTransform.GetScale3D().Z,
+			DrawTransform.GetRotation().Rotator().Roll, DrawTransform.GetRotation().Rotator().Pitch, DrawTransform.GetRotation().Rotator().Yaw);
+
+		DrawnComponent->SetWorldTransform(DrawTransform);
 		DrawnComponent->SetCastShadow(false);
 	}
+
 
 
 	Super::drawCellRecursively();
