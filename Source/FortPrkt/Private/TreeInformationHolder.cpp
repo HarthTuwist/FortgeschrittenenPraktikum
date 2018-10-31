@@ -25,3 +25,19 @@ UTreeInformationHolder::UTreeInformationHolder()
 	BaseBranchingAngleX = 15.0f;
 	BaseBranchingAngleY = 15.0f;
 }
+
+void UTreeInformationHolder::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TArray<FString> GenomeKeys;
+	GenomeMap.GenerateKeyArray(GenomeKeys);
+	for (FString F : GenomeKeys)
+	{
+		if(!GenomeMap.Contains(F))
+		{
+			CellDefMap.Add(F); //add default constructed Definitions
+		}
+	}
+
+}

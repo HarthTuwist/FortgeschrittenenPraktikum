@@ -10,6 +10,67 @@
 /**
  * 
  */
+
+
+USTRUCT(BlueprintType)
+struct FCellTypeDefinition
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+
+	//1 if growing up, 0 if ignoring gravity, -1 if growing down
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float CorrelationWithStandardDrawDirection;
+
+	//always rotate around this besides everything else
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float AdditionalRotationAngleX;
+
+	//always rotate around this besides everything else
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float AdditionalRotationAngleY;
+
+	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float HorizChildrenGrowFreedomX_Mean;
+	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float HorizChildrenGrowFreedomX_Variance;
+
+	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float HorizChildrenGrowFreedomY_Mean;
+	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float HorizChildrenGrowFreedomY_Variance;
+
+
+	//multiplies StandardDrawLength
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float DrawLengthMultiplier;
+
+
+
+	//the cell divides at the next stage into this number of cells
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+	//	TArray<int32> ChildrenNumbers;
+
+	FCellTypeDefinition()
+	{
+		CorrelationWithStandardDrawDirection = 0.0f;
+		AdditionalRotationAngleX = 0.0f;
+		AdditionalRotationAngleY = 0.0f;
+		DrawLengthMultiplier = 1.0f;
+
+		HorizChildrenGrowFreedomX_Variance =  45.0f;
+		HorizChildrenGrowFreedomX_Mean = -22.5f;
+		HorizChildrenGrowFreedomY_Variance = 0.0f; //45.0f;
+		HorizChildrenGrowFreedomY_Mean = 0.0f; //-22.0f;
+	}
+};
+
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class FORTPRKT_API UTreeInformationHolder : public UOrganismInformationHolder
 {
@@ -17,7 +78,11 @@ class FORTPRKT_API UTreeInformationHolder : public UOrganismInformationHolder
 	
 		// Sets default values for this component's properties
 		UTreeInformationHolder();
-	
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Genome")
 		float StandardCellWidth;
@@ -74,4 +139,8 @@ public:
 	//if this is in state string, this cell should grow back
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString GrowBackMarker;
+
+	//TODO Change back to int32
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		TMap<FString, FCellTypeDefinition> CellDefMap;
 };

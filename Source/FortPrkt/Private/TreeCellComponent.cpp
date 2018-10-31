@@ -136,7 +136,7 @@ void UTreeCellComponent::drawCellRecursively()
 			float XDivergionFromParent = 0.0f; //the diversion from the parent angle in X axis
 			float YDivergionFromParent = 0.0f; //the diversion from the parent angle in > axis
 			
-
+			/*
 			//X Divergion
 			if (StateString.Contains(OwnersTreeInfos->GrowRightMarker))
 			{
@@ -164,8 +164,61 @@ void UTreeCellComponent::drawCellRecursively()
 			// if grow straight
 				//don't do anything here, angles need to be 0
 
-			RotationAngleX = ParentAsTreeCell->RotationAngleX + bNegativeXRotation * XDivergionFromParent * OwnersTreeInfos->BaseBranchingAngleX;
-			RotationAngleY = ParentAsTreeCell->RotationAngleY + bNegativeYRotation * YDivergionFromParent * OwnersTreeInfos->BaseBranchingAngleY;
+			*/
+
+			//////////////
+			const int32 NumParentChildren = ParentAsTreeCell->AttachedCellChildren.Num();
+			const FCellTypeDefinition* ParentDef = OwnersTreeInfos->CellDefMap.Find(ParentAsTreeCell->StateString);
+
+			if (NumParentChildren > 1)
+			{
+				const int32 PosInParentsChildren = ParentAsTreeCell->AttachedCellChildren.Find(this);
+				
+	
+				if (ParentDef != nullptr)
+				{
+					XDivergionFromParent = ParentDef->HorizChildrenGrowFreedomX_Variance / (NumParentChildren - 1) * PosInParentsChildren + ParentDef->HorizChildrenGrowFreedomX_Mean;
+					YDivergionFromParent = ParentDef->HorizChildrenGrowFreedomY_Variance / (NumParentChildren - 1) * PosInParentsChildren + ParentDef->HorizChildrenGrowFreedomY_Mean;
+				}
+			}
+
+			const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
+			if (DefOfThis != nullptr)
+			{
+
+				XDivergionFromParent += OwnersTreeInfos->CellDefMap.Find(StateString)->AdditionalRotationAngleX;
+				YDivergionFromParent += OwnersTreeInfos->CellDefMap.Find(StateString)->AdditionalRotationAngleY;
+
+
+				RotationAngleX = ParentAsTreeCell->RotationAngleX +  XDivergionFromParent;
+				RotationAngleY = ParentAsTreeCell->RotationAngleY + YDivergionFromParent;
+
+
+				//add correlation with standardDrawDirection
+				float LerpTarget = 0.0f;
+				if (DefOfThis->CorrelationWithStandardDrawDirection >= 0)
+				{
+					LerpTarget = 0.0f;
+				}
+				else
+				{
+					//TODO das stimmt so nicht; ist zu einfach!
+					LerpTarget = 180.0f;
+				}
+
+				RotationAngleX = FMath::Lerp(RotationAngleX, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
+				RotationAngleY = FMath::Lerp(RotationAngleY, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
+			}
+			//////////////
+
+			else
+			{
+				RotationAngleX = ParentAsTreeCell->RotationAngleX + XDivergionFromParent;
+				RotationAngleY = ParentAsTreeCell->RotationAngleY + YDivergionFromParent;
+			}
+
+		
+
 
 			//actually rotate DrawDirection
 			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
