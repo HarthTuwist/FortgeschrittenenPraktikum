@@ -202,12 +202,13 @@ void UTreeCellComponent::drawCellRecursively()
 				}
 				else
 				{
-					//TODO das stimmt so nicht; ist zu einfach!
+					
 					LerpTarget = 180.0f;
 				}
 
+				//TODO mache das auch 3D fähig
 				RotationAngleX = FMath::Lerp(RotationAngleX, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
-				RotationAngleY = FMath::Lerp(RotationAngleY, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
+				//RotationAngleY = FMath::Lerp(RotationAngleY, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
 			}
 			//////////////
 
@@ -286,16 +287,33 @@ void UTreeCellComponent::drawCellRecursively()
 			ParentCellTransform.GetLocation()
 			+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector);
 
-		//const FQuat NewRotation = 
-		FQuat Rotation = /*NewRotation * */ ParentCellTransform.GetRotation();
-		Rotation = FRotator(0.0f, 0.0f, 0.0f).Quaternion();
-		
-		FVector asdf = GetOwner()->GetActorForwardVector();
+		FRotator ThisRot = FRotator::ZeroRotator;
+		if (ParentAsTreeCell != nullptr && ParentAsTreeCell->AttachedCellChildren.Num()>2)
+		{
+			TArray<FVector> GrowVectorArray;
+			ParentAsTreeCell->GetRawHorizChilDrawVecs(GrowVectorArray);
+			const int32 PosInParent = ParentAsTreeCell->AttachedCellChildren.Find(this);
+			if (GrowVectorArray.Num() > PosInParent)
+			{
+				const FVector GrowVectorOfThis = GrowVectorArray[PosInParent];
+				ThisRot = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, GrowVectorOfThis);
+			}
+			else
+			{
+				UE_LOG(LogCell, Error, TEXT("Drawing TreeCell, to few parent grow Vectors, Name: %s, StateString: %s, ParentGrowVecs.Length: %u, wanted position: %u"),
+					*GetNameSafe(this),
+					*StateString,
+					GrowVectorArray.Num(),
+					PosInParent);
+			}
+			
+			//Rotation = FRotator(0.0f, 0.0f, 0.0f).Quaternion();
+		}
+		//else keep ZeroRotator(first cell in tree)
+		const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
 
-		asdf = asdf.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
-		asdf = asdf.RotateAngleAxis(RotationAngleY, FVector(0.0f, 1.0f, 0.0f));
-
-		DrawTransform = FTransform(FRotator(RotationAngleY,0.0f, RotationAngleX), Location, Scale);
+		//DrawTransform = FTransform(FRotator(RotationAngleY,0.0f, RotationAngleX), Location, Scale);
+		DrawTransform = FTransform(EndRot, Location, Scale);
 		//DrawTransform = FTransform(UKismetMathLibrary::FindLookAtRotation(asdf, FVector::ZeroVector), Location, Scale);
 
 		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, StateString: %s Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
@@ -332,4 +350,72 @@ bool UTreeCellComponent::shouldDivideHorizontally()
 void UTreeCellComponent::InitWithString(FString InString)
 {
 	Super::InitWithString(InString);
+
+	RawHorizChilDrawVecs.Empty();
+}
+
+bool UTreeCellComponent::CalcHorizDivChilVecs()
+{
+	//TODO fix this, as this does not seem to do exactly what it should be doing
+	RawHorizChilDrawVecs.Empty();
+
+	if (OwnersTreeInfos == nullptr)
+	{
+		return false;
+	}
+
+	const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
+	if (DefOfThis == nullptr)
+	{
+		return false;
+	}
+
+	//TODO erlaube auch Varianten, die nur einen Halbkreis und keinen Kreis beschreiben?
+	const float sqrt3 = 1.73205080757;
+	const int32 NrAttachedChilds = AttachedCellChildren.Num();
+
+	int32 NumberOfRows = 1;
+
+	if (DefOfThis->HorChlCircleVarianceAngle != 0)
+	{
+		//There are somewhat complicated maths behind this. Look it up in the paper documentation
+		NumberOfRows = FMath::CeilToInt(FMath::Sqrt(2 / sqrt3 * DefOfThis->HorChlCircleVarianceAngle / 360 * NrAttachedChilds));
+		NumberOfRows = FMath::Sqrt(NrAttachedChilds);
+		if (NumberOfRows < 1)
+		{
+			NumberOfRows = 1;
+		}
+	}
+	//else keep it at 1
+	
+	const int32 ElementsPerRow = FMath::CeilToInt(NrAttachedChilds / NumberOfRows); //use ceil to get to the nearest angle-"rectangle" that contain all elements
+
+	for (int32 r = 0; r < NumberOfRows; r++)
+	{
+		DefOfThis->HorChlCircleVarianceAngle;
+		const FVector RowRotator = FVector(0.0f, 0.0f, 1.0f).RotateAngleAxis(DefOfThis->HorChlCircleAngle - DefOfThis->HorChlCircleVarianceAngle *r, FVector(1.0f, 0.0f, 0.0f)); //one axis orthogonal to StandardDrawDirection
+
+		for (int32 e = 0; e < ElementsPerRow; e++)
+		{
+			const FVector NewEntry = RowRotator.RotateAngleAxis(e * 360 / ElementsPerRow, FVector(0.0f, 0.0f, 1.0f)); //rotate around Z Axis
+		//	NewEntry = NewEntry.
+			
+
+		//	NewEntry =  NewEntry.RotateAngleAxis()
+			RawHorizChilDrawVecs.Add(NewEntry);
+		}
+	}
+
+	return true;
+}
+
+void UTreeCellComponent::GetRawHorizChilDrawVecs(TArray<FVector>& Vectors)
+{
+	if (RawHorizChilDrawVecs.Num() == 0)
+	{
+		CalcHorizDivChilVecs(); //TODO put actual value here
+	}
+
+	Vectors = RawHorizChilDrawVecs;
+
 }

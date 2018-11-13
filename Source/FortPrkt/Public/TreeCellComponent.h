@@ -58,7 +58,20 @@ public:
 
 	virtual void InitWithString(FString InString) override;
 
+	//Calculate Raw Horizontal Divide Attached Children Vectors into RawHorizChilDrawVecs. TireWidth is variance in grow direction; freedom on the circle is always full 360°.
+	//Return false if no calculation was made
+	virtual bool CalcHorizDivChilVecs();
+
+	//Get stored horizontal children. If not calculated yet, calculate it before returning
+	UFUNCTION(Blueprintpure, Category = "Cellproperties")
+		void GetRawHorizChilDrawVecs(TArray<FVector>& Vectors);
+
+
 private:
+	//Empty if not calculated yet. Might contain more entries then there are children
+	UPROPERTY()
+		TArray<FVector> RawHorizChilDrawVecs;
+
 	UPROPERTY()
 		UTreeInformationHolder* OwnersTreeInfos;
 };

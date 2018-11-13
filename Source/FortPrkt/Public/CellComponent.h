@@ -42,7 +42,7 @@ public:
 		UCellComponent* AttachedCellParent;
 
 	//true if cell was actually added
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = "Cell")
 		virtual bool AddNewCellChild(UCellComponent* CellToAdd, int32 AtPosition = -42);
 
 	UFUNCTION(BlueprintCallable, Category = "Cell")
