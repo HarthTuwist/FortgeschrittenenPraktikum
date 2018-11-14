@@ -42,6 +42,10 @@ void UCellComponent::BeginPlay()
 	}*/
 }
 
+void UCellComponent::CopyPropertiesFromParent(UCellComponent * Parent)
+{
+}
+
 
 // Called every frame
 void UCellComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -78,29 +82,41 @@ void UCellComponent::divideCell()
 	}
 }
 
-void UCellComponent::divideCellHorizontally()
+void UCellComponent::divideCellHorizontally(TArray<FString>* ChildrenArray /*= nullptr*/)
 {
 	TArray<UCellComponent*> OutArray = TArray<UCellComponent*>();
 
-	const TArray<FString> Strings = GetDivideSubstrings(StateString);
+
+	TArray<FString> DivideSubStrings;
+	TArray<FString>* Strings = nullptr;
+	
+	if (ChildrenArray == nullptr)
+	{
+		DivideSubStrings = GetDivideSubstrings(StateString);
+		Strings = &DivideSubStrings;
+	}
+	else
+	{
+		Strings = ChildrenArray;
+	}
 
 	UE_LOG(LogCell, Verbose, TEXT("DividingCellHorz:, %s, StateString: %s #Substrings: %i"),
 		*GetNameSafe(this),
 		*StateString,
-		Strings.Num());
+		Strings->Num());
 
-	for (int32 Index = 0; Index < Strings.Num(); ++Index)
+	for (int32 Index = 0; Index < Strings->Num(); ++Index)
 	{
 		UCellComponent* NewCell = NULL;
 
-		if (Index < Strings.Num() - 1) //for new cells
+		if (Index < Strings->Num() - 1) //for new cells
 		{
 			NewCell = NewObject<UCellComponent>(GetOwner(), NewCellClass, NAME_None, RF_NoFlags, nullptr, false, nullptr);
 			NewCell->SetMobility(EComponentMobility::Movable);
 			NewCell->SetupAttachment(this);
 			NewCell->RegisterComponent();
 
-			NewCell->StateString = Strings[Index];
+			NewCell->StateString = Strings->operator[](Index);
 
 			AttachedCellParent->AddNewCellChild(NewCell);
 
@@ -109,8 +125,10 @@ void UCellComponent::divideCellHorizontally()
 		else //for this cell that is going to remain a cell but might change it's type
 		{
 			NewCell = this;
-			StateString = Strings[Index];
+			StateString = Strings->operator[](Index);
 		}
+
+		NewCell->CopyPropertiesFromParent(this);
 
 		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellHoriz, %s, Created New Cell: %s with Nr: %i and StateString: %s, for parent: %s"),
 			*GetNameSafe(this),
@@ -123,30 +141,42 @@ void UCellComponent::divideCellHorizontally()
 
 }
 
-void UCellComponent::divideCellVertically()
+void UCellComponent::divideCellVertically(TArray<FString>* ChildrenArray /*= nullptr*/)
 {
 	TArray<UCellComponent*> OutArray = TArray<UCellComponent*>();
 	UCellComponent* LastCell = NULL;
 
-	const TArray<FString> Strings = GetDivideSubstrings(StateString);
+
+	TArray<FString> DivideSubStrings;
+	TArray<FString>* Strings = nullptr;
+
+	if (ChildrenArray == nullptr)
+	{
+		DivideSubStrings = GetDivideSubstrings(StateString);
+		Strings = &DivideSubStrings;
+	}
+	else
+	{
+		Strings = ChildrenArray;
+	}
 
 	UE_LOG(LogCell, Verbose, TEXT("DividingCellVert: %s, StateString: %s #Substrings: %i"),
 		*GetNameSafe(this),
 		*StateString,
-		Strings.Num());
+		Strings->Num());
 
-	for (int32 Index = 0; Index < Strings.Num(); ++Index)
+	for (int32 Index = 0; Index < Strings->Num(); ++Index)
 	{
 		UCellComponent* NewCell = NULL;
 
-		if (Index < Strings.Num() - 1) //for new cells
+		if (Index < Strings->Num() - 1) //for new cells
 		{
 			NewCell = NewObject<UCellComponent>(GetOwner(), NewCellClass, NAME_None, RF_NoFlags, nullptr, false, nullptr);
 			NewCell->SetMobility(EComponentMobility::Movable);
 			NewCell->SetupAttachment(this);
 			NewCell->RegisterComponent();
 
-			NewCell->StateString = Strings[Index];
+			NewCell->StateString = Strings->operator [](Index);
 
 			if (Index == 0) //if we are creating the first new cell, replace the reference to this in the parent to the new cell
 			{
@@ -179,8 +209,10 @@ void UCellComponent::divideCellVertically()
 				LastCell->AddNewCellChild(this);
 			}
 			
-			StateString = Strings[Index];
+			StateString = Strings->operator[] (Index);
 		}
+
+		NewCell->CopyPropertiesFromParent(this);
 
 		UE_LOG(LogCell, VeryVerbose, TEXT("DividingCellVert:, %s, Created New Cell: %s with Nr: %i and StateString: %s for parent: %s"),
 			*GetNameSafe(this),

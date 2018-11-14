@@ -19,6 +19,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void CopyPropertiesFromParent(UCellComponent* Parent);
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -30,8 +32,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Cell")
 		virtual bool shouldDivideHorizontally();
 
-	virtual void divideCellHorizontally(); //called by divideCell(bool bDivideHorizontally)
-	virtual void divideCellVertically();//called by divideCell(bool bDivideHorizontally)
+	virtual void divideCellHorizontally(TArray<FString>* ChildrenArray = nullptr); //called by divideCell(bool bDivideHorizontally)
+	virtual void divideCellVertically(TArray<FString>* ChildrenArray = nullptr);//called by divideCell(bool bDivideHorizontally)
 
 	//the cells that are directly attached to this cell
 	UPROPERTY(BlueprintReadOnly, Category = "Cell")

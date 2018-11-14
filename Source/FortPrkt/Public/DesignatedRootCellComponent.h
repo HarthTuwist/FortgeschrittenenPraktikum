@@ -16,7 +16,8 @@ class FORTPRKT_API UDesignatedRootCellComponent : public UCellComponent
 
 	void BeginPlay() override;
 
-	virtual void drawCellRecursively() override;
 
 	virtual void divideCell();
+public:
+	virtual void drawCellRecursively() override;
 };

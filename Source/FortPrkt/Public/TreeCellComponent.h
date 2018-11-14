@@ -25,10 +25,14 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void CopyPropertiesFromParent(UCellComponent* Parent);
+
 public:
+		virtual void divideCell();
 
 	//Draw Stuff
 	TArray<FString> GetDivideSubstrings(FString InString) override;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		UStaticMeshComponent* DrawnComponent;
 
@@ -66,6 +70,19 @@ public:
 	UFUNCTION(Blueprintpure, Category = "Cellproperties")
 		void GetRawHorizChilDrawVecs(TArray<FVector>& Vectors);
 
+	//properties that have an enum and can influence division
+public:
+	//use this to set CellStateTraits.
+	UFUNCTION(BlueprintCallable, Category = "CellStateTraits")
+		void SetCellStateTrait(EStateTraitEnum TraitEnum, int32 NewValue);
+
+	//use this to get CellStateTraits
+	UFUNCTION(BlueprintCallable, Category = "CellStateTraits")
+		int32 GetCellStateTrait(EStateTraitEnum TraitEnum);
+
+//public to make this visible in C++ for calculation in Iteration
+	UPROPERTY()
+		int32 IterationsSinceCreation;
 
 private:
 	//Empty if not calculated yet. Might contain more entries then there are children

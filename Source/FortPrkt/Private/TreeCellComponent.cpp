@@ -33,6 +33,79 @@ void UTreeCellComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UTreeCellComponent::CopyPropertiesFromParent(UCellComponent * Parent)
+{
+	
+	if (Parent == nullptr) //this should not happen
+	{
+		UE_LOG(LogCell, Warning, TEXT("CopyingPropertiesFrom Parent == nullptr for TreeCell: %s"),
+			*StateString);
+
+		return;
+	}
+
+	UTreeCellComponent* ParentAsTreeCell = Cast<UTreeCellComponent>(Parent);
+	
+	if (ParentAsTreeCell == nullptr) //other cell, e.g. root, is the parent
+	{
+
+	}
+
+
+	//always set this properties to standard values
+	IterationsSinceCreation = 0;
+
+}
+
+void UTreeCellComponent::divideCell()
+{
+
+	if (OwnersTreeInfos == nullptr)
+	{
+		UE_LOG(LogCell, Warning, TEXT("No OwnersTreeInfos for cell: %s, StateString: %s, cancel divide"),
+			*GetNameSafe(this),
+			*StateString);
+
+		return;
+	}
+
+	if (OwnersTreeInfos->bUseGenomeMapReplacement)
+	{
+		Super::divideCell();
+	}
+
+	else
+	{
+		FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
+		if (DefOfThis != nullptr)
+		{
+			for (uint8 i = 0; i < (uint8) EStateTraitEnum::FIRST_INVALID; i++)
+			{
+				FCellDivideDefinition* CurCellDivDef = DefOfThis->DivideMap.Find((EStateTraitEnum)i);
+
+				if (CurCellDivDef != nullptr)
+				{
+					if (GetCellStateTrait((EStateTraitEnum)i) >= CurCellDivDef->DivideThreshold)
+					{
+						if (CurCellDivDef->bDividesHorizontally == true)
+						{
+							divideCellHorizontally(&CurCellDivDef->ChildrenStateStrings);
+						}
+
+						else
+						{
+							divideCellVertically(&CurCellDivDef->ChildrenStateStrings);
+						}
+
+						break;
+					}
+				}
+			}
+		}
+	}
+
+}
+
 TArray<FString> UTreeCellComponent::GetDivideSubstrings(FString InString)
 {
 	//if we are using GenomeMap scheme, calculate children by this
@@ -57,6 +130,7 @@ TArray<FString> UTreeCellComponent::GetDivideSubstrings(FString InString)
 			return ArrayFromMap;
 		}
 	}
+
 
 	//else
 	TArray<FString> OutArray = TArray<FString>();
@@ -310,7 +384,9 @@ void UTreeCellComponent::drawCellRecursively()
 			//Rotation = FRotator(0.0f, 0.0f, 0.0f).Quaternion();
 		}
 		//else keep ZeroRotator(first cell in tree)
-		const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
+		//const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
+		const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
+		
 
 		//DrawTransform = FTransform(FRotator(RotationAngleY,0.0f, RotationAngleX), Location, Scale);
 		DrawTransform = FTransform(EndRot, Location, Scale);
@@ -418,4 +494,25 @@ void UTreeCellComponent::GetRawHorizChilDrawVecs(TArray<FVector>& Vectors)
 
 	Vectors = RawHorizChilDrawVecs;
 
+}
+
+void UTreeCellComponent::SetCellStateTrait(EStateTraitEnum TraitEnum, int32 NewValue)
+{
+	if (TraitEnum == EStateTraitEnum::TRAIT_LIFETIME)
+	{
+		IterationsSinceCreation = NewValue;
+	}
+}
+
+int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
+{
+	if (TraitEnum == EStateTraitEnum::TRAIT_LIFETIME)
+	{
+		return IterationsSinceCreation;
+	}
+
+	else
+	{
+		return -21;
+	}
 }

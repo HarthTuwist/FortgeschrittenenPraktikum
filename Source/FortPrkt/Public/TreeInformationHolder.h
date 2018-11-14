@@ -11,6 +11,41 @@
  * 
  */
 
+UENUM()
+enum class EStateTraitEnum : uint8
+{
+	TRAIT_LIFETIME = 0 UMETA(DisplayName = "TimeSinceCreation"),
+
+	FIRST_INVALID UMETA(Hidden)
+};
+
+USTRUCT(BlueprintType)
+struct FCellDivideDefinition
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+
+	//Trigger the encoded divide if the according CellState property is bigger than this
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellDivideDefinition")
+		int32 DivideThreshold;
+
+	//false if division should occur vertically
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellDivideDefinition")
+		bool bDividesHorizontally;
+
+	//false if division should occur vertically
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellDivideDefinition")
+		TArray<FString> ChildrenStateStrings;
+
+	FCellDivideDefinition()
+	{
+		DivideThreshold = 100000000; //very high
+		bDividesHorizontally = false;
+		ChildrenStateStrings = TArray<FString>();
+	}
+};
+
 
 USTRUCT(BlueprintType)
 struct FCellTypeDefinition
@@ -58,7 +93,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float DrawLengthMultiplier;
 
-
+	//this map divides how any map is going to 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
 
 	//the cell divides at the next stage into this number of cells
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
@@ -80,7 +117,6 @@ public:
 		HorChlCircleVarianceAngle = 0.0f;
 	}
 };
-
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class FORTPRKT_API UTreeInformationHolder : public UOrganismInformationHolder
@@ -151,7 +187,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString GrowBackMarker;
 
-	//TODO Change back to int32
+	//TODO Change back to int32?
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		TMap<FString, FCellTypeDefinition> CellDefMap;
 };
