@@ -15,6 +15,7 @@ UENUM()
 enum class EStateTraitEnum : uint8
 {
 	TRAIT_LIFETIME = 0 UMETA(DisplayName = "TimeSinceCreation"),
+	TRAIT_WEIGHTBURDEN = 1 UMETA(DisplayName = "WeightBurden"),
 
 	FIRST_INVALID UMETA(Hidden)
 };
@@ -93,9 +94,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float DrawLengthMultiplier;
 
-	//this map divides how any map is going to 
+	//this map defines the multiply ways this cell could divide
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
 		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
+
+	//Bonus in cell size per cell burden
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+		float WeightBurdenBonus;
+
 
 	//the cell divides at the next stage into this number of cells
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
@@ -115,6 +121,7 @@ public:
 
 		HorChlCircleAngle = 15.0f;
 		HorChlCircleVarianceAngle = 0.0f;
+		WeightBurdenBonus = 0.0f;
 	}
 };
 

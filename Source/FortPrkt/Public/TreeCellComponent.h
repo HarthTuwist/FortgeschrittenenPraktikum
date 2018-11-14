@@ -70,7 +70,9 @@ public:
 	UFUNCTION(Blueprintpure, Category = "Cellproperties")
 		void GetRawHorizChilDrawVecs(TArray<FVector>& Vectors);
 
-	//properties that have an enum and can influence division
+	////////////////////
+	//CellStateTraits, eg. properties that have an enum and can influence division
+	////////////////////
 public:
 	//use this to set CellStateTraits.
 	UFUNCTION(BlueprintCallable, Category = "CellStateTraits")
@@ -83,6 +85,12 @@ public:
 //public to make this visible in C++ for calculation in Iteration
 	UPROPERTY()
 		int32 IterationsSinceCreation;
+
+	//calculates the burden by this cell by calling this function of the children
+	int32 CalcBurdenRecursively();
+
+	UPROPERTY()
+		int32 WeightBurden;
 
 private:
 	//Empty if not calculated yet. Might contain more entries then there are children

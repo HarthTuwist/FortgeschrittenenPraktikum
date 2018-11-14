@@ -48,9 +48,13 @@ void UTreeCellComponent::CopyPropertiesFromParent(UCellComponent * Parent)
 	
 	if (ParentAsTreeCell == nullptr) //other cell, e.g. root, is the parent
 	{
-
+		WeightBurden = 0;
 	}
 
+	else
+	{
+		WeightBurden = ParentAsTreeCell->WeightBurden;
+	}
 
 	//always set this properties to standard values
 	IterationsSinceCreation = 0;
@@ -350,11 +354,23 @@ void UTreeCellComponent::drawCellRecursively()
 	*/
 		float SingleScale = OwnersTreeInfos->StandardCellWidth;
 		//const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength * StandardDrawUpVector * ParentCellTransform.GetScale3D().Z;
-		const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength;
+		
+		int32 ParentWeightBurden = 0;
 	
+		//Disable this for now
+		//if (ParentAsTreeCell != nullptr)
+		//{
+		//	ParentWeightBurden = ParentAsTreeCell->WeightBurden;
+		//}
+
+		const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * (OwnersTreeInfos->StandardDrawLength + ParentWeightBurden);
+	
+		//const float WeightThicknessBonus = FMath::Max(FMath::Pow(WeightBurden, 0.05) * 0.005, 1.0);
+		const float WeightThicknessBonus = FMath::Max(FMath::Pow(WeightBurden, 0.6), 1.0f) * 0.005f ;
+
 		const FVector Scale = FVector(
-			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh,
-			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh,
+			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh + WeightThicknessBonus,
+			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh + WeightThicknessBonus,
 			OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh);
 
 		const FVector Location =
@@ -502,6 +518,12 @@ void UTreeCellComponent::SetCellStateTrait(EStateTraitEnum TraitEnum, int32 NewV
 	{
 		IterationsSinceCreation = NewValue;
 	}
+
+	else if (TraitEnum == EStateTraitEnum::TRAIT_WEIGHTBURDEN)
+	{
+		WeightBurden = NewValue;
+	}
+
 }
 
 int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
@@ -511,8 +533,28 @@ int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
 		return IterationsSinceCreation;
 	}
 
+	else if (TraitEnum == EStateTraitEnum::TRAIT_WEIGHTBURDEN)
+	{
+		return WeightBurden;
+	}
+
 	else
 	{
 		return -21;
 	}
+}
+
+int32 UTreeCellComponent::CalcBurdenRecursively()
+{
+	int32 outValue = 0;
+
+	for (UCellComponent* child : AttachedCellChildren)
+	{
+		outValue += Cast<UTreeCellComponent>(child)->CalcBurdenRecursively();
+		outValue += 1; //add 1 as the cell has a weight, too
+	}
+	//if no children weight is 0
+	
+	WeightBurden = outValue;
+	return outValue;
 }

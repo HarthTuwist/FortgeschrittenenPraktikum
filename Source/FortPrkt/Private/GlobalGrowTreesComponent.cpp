@@ -73,6 +73,7 @@ void UGlobalGrowTreesComponent::CalculateCellStateTraits()
 	{
 		if (root != nullptr)
 		{
+			//iterate over cells
 			const TArray<UActorComponent*> CellsOfRoot = root->GetOwner()->GetComponentsByClass(UTreeCellComponent::StaticClass());
 
 			for (UActorComponent* cell : CellsOfRoot)
@@ -82,7 +83,15 @@ void UGlobalGrowTreesComponent::CalculateCellStateTraits()
 				//add one to time
 				CellAsCell->IterationsSinceCreation++;
 			}
+
+			//calculate burden
+			for (UCellComponent* rootChild : root->AttachedCellChildren)
+			{
+				Cast<UTreeCellComponent>(rootChild)->CalcBurdenRecursively();
+			}
+		}
+
+
 	}
-}
 }
 
