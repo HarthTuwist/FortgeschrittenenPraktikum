@@ -32,3 +32,7 @@ void UOrganismInformationHolder::TickComponent(float DeltaTime, ELevelTick TickT
 	// ...
 }
 
+void UOrganismInformationHolder::MutateOrganism()
+{
+}
+

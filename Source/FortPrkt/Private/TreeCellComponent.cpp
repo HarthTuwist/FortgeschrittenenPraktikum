@@ -277,14 +277,16 @@ void UTreeCellComponent::drawCellRecursively()
 		DrawTransform = FTransform(EndRot, Location, Scale);
 		//DrawTransform = FTransform(UKismetMathLibrary::FindLookAtRotation(asdf, FVector::ZeroVector), Location, Scale);
 		
+		/*
 		FRotator asdf = UKismetMathLibrary::MakeRotFromXZ(StandardDrawUpVector.RotateAngleAxis(90.0f, FVector(0.0f, 1.0f, 0.0f)), StandardDrawUpVector);
 		FRotator xyz = UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
 
 		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, TEST MAKEROTFROMXZ %f, %f, %f composyRotators: %f, %f, %f, ParentCellRot: %f, %f, %f"),
 			*GetNameSafe(this),
-			asdf.Roll , asdf.Pitch, asdf.Yaw,
+			asdf.Roll, asdf.Pitch, asdf.Yaw,
 			xyz.Roll, xyz.Pitch, xyz.Yaw,
 			ParentCellTransform.GetRotation().Rotator().Roll, ParentCellTransform.GetRotation().Rotator().Pitch, ParentCellTransform.GetRotation().Rotator().Yaw);
+		*/
 
 		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, StateString: %s Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
 			*GetNameSafe(this),

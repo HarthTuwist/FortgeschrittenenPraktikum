@@ -179,6 +179,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		TMap<FString, FCellTypeDefinition> CellDefMap;
 
+	virtual void MutateOrganism() override;
+
 	UFUNCTION(BlueprintCallable, Category = "Genome")
-		virtual void MutateOrganism();
+		virtual void MutateCellDefProperties(FString CellId);
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		virtual void MutateCellDivideProperties(FString CellId);
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		virtual void BlindlyRandomCellDivides();
 };

@@ -40,4 +40,7 @@ public:
 	//at begin play, if the statestring is "@@@" it is replaced with this if not empty
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString RootString;
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		virtual void MutateOrganism();
 };
