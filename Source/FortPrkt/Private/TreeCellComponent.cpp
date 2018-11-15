@@ -193,132 +193,6 @@ void UTreeCellComponent::drawCellRecursively()
 		ParentCellTransform = ParentAsTreeCell->DrawTransform;
 	}
 
-	FVector DrawDirection = FVector::ZeroVector;
-
-	if (OwnersTreeInfos != nullptr)
-	{	
-		DrawDirection = OwnersTreeInfos->StandardDrawVector;
-
-		if (ParentAsTreeCell == nullptr) //if we not have a TreeCell as parent but something else (usually the designated root)
-		{
-			RotationAngleX = 0.0f;
-			RotationAngleY = 0.0f;
-
-
-			//grow straight up into the air, so don't change DrawDirection
-		}
-		else 
-		{
-			float bNegativeXRotation = 1.0f; //use this as a fake bool to multiply rotation if we rotate left
-			float bNegativeYRotation = 1.0f; //use this as a fake bool to multiply rotation if we rotate backwards
-			float XDivergionFromParent = 0.0f; //the diversion from the parent angle in X axis
-			float YDivergionFromParent = 0.0f; //the diversion from the parent angle in > axis
-			
-			/*
-			//X Divergion
-			if (StateString.Contains(OwnersTreeInfos->GrowRightMarker))
-			{
-				XDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowRightMarker, &StateString);
-			}
-
-			else if (StateString.Contains(OwnersTreeInfos->GrowLeftMarker))
-			{
-				XDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowLeftMarker, &StateString);
-				bNegativeXRotation = -1.0f;
-			}
-
-			//Y Divergion
-			if (StateString.Contains(OwnersTreeInfos->GrowForwardMarker))
-			{
-				YDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowForwardMarker, &StateString);
-			}
-
-			else if (StateString.Contains(OwnersTreeInfos->GrowBackMarker))
-			{
-				YDivergionFromParent = CountStringInString(&OwnersTreeInfos->GrowBackMarker, &StateString);
-				bNegativeYRotation = -1.0f;
-			}
-			 
-			// if grow straight
-				//don't do anything here, angles need to be 0
-
-			*/
-
-			//////////////
-			const int32 NumParentChildren = ParentAsTreeCell->AttachedCellChildren.Num();
-			const FCellTypeDefinition* ParentDef = OwnersTreeInfos->CellDefMap.Find(ParentAsTreeCell->StateString);
-
-			if (NumParentChildren > 1)
-			{
-				const int32 PosInParentsChildren = ParentAsTreeCell->AttachedCellChildren.Find(this);
-				
-	
-				if (ParentDef != nullptr)
-				{
-					XDivergionFromParent = ParentDef->HorizChildrenGrowFreedomX_Variance / (NumParentChildren - 1) * PosInParentsChildren + ParentDef->HorizChildrenGrowFreedomX_Mean;
-					YDivergionFromParent = ParentDef->HorizChildrenGrowFreedomY_Variance / (NumParentChildren - 1) * PosInParentsChildren + ParentDef->HorizChildrenGrowFreedomY_Mean;
-				}
-			}
-
-			const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
-			if (DefOfThis != nullptr)
-			{
-
-				XDivergionFromParent += OwnersTreeInfos->CellDefMap.Find(StateString)->AdditionalRotationAngleX;
-				YDivergionFromParent += OwnersTreeInfos->CellDefMap.Find(StateString)->AdditionalRotationAngleY;
-
-
-				RotationAngleX = ParentAsTreeCell->RotationAngleX +  XDivergionFromParent;
-				RotationAngleY = ParentAsTreeCell->RotationAngleY + YDivergionFromParent;
-
-
-				//add correlation with standardDrawDirection
-				float LerpTarget = 0.0f;
-				if (DefOfThis->CorrelationWithStandardDrawDirection >= 0)
-				{
-					LerpTarget = 0.0f;
-				}
-				else
-				{
-					
-					LerpTarget = 180.0f;
-				}
-
-				//TODO mache das auch 3D fähig
-				RotationAngleX = FMath::Lerp(RotationAngleX, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
-				//RotationAngleY = FMath::Lerp(RotationAngleY, LerpTarget, FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection));
-			}
-			//////////////
-
-			else
-			{
-				RotationAngleX = ParentAsTreeCell->RotationAngleX + XDivergionFromParent;
-				RotationAngleY = ParentAsTreeCell->RotationAngleY + YDivergionFromParent;
-			}
-
-		
-
-
-			//actually rotate DrawDirection
-			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleX, FVector(1.0f, 0.0f, 0.0f));
-			DrawDirection = DrawDirection.RotateAngleAxis(RotationAngleY, FVector(0.0f, 1.0f, 0.0f));
-
-
-
-
-
-
-		}
-
-		DrawEndPosition = DrawOriginPosition + DrawDirection;
-
-	}
-
-	else //a dummy value in case OwnersTreeInfos doesn't exist
-	{
-		DrawDirection = FVector(-42.0f, -42.0f, -42.0f);
-	}
-
 	//DrawnComponent = NewObject<USplineMeshComponent>(GetOwner());
 	DrawnComponent = NewObject<UStaticMeshComponent>(GetOwner());
 	DrawnComponent->SetMobility(EComponentMobility::Movable);
@@ -337,21 +211,10 @@ void UTreeCellComponent::drawCellRecursively()
 
 	if (OwnersTreeInfos && OwnersTreeInfos->StaticMeshForVisuals->IsValidLowLevel())
 	{
-		DrawnComponent->SetStaticMesh(OwnersTreeInfos->StaticMeshForVisuals);
-		/*
-		DrawnComponent->SetStartPosition(DrawOriginPosition);
-		DrawnComponent->SetEndPosition(DrawEndPosition);
-		DrawnComponent->SetStartTangent((DrawEndPosition - DrawOriginPosition).GetSafeNormal());
-		DrawnComponent->SetEndTangent((DrawEndPosition - DrawOriginPosition).GetSafeNormal());
-		
-		float SingleScale = OwnersTreeInfos->StandardCellWidth;
-		
-		DrawnComponent->SetStartScale(FVector2D(SingleScale, SingleScale));
-		DrawnComponent->SetEndScale(FVector2D(SingleScale, SingleScale));
+		const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
 
-		DrawnComponent->SetForwardAxis(OwnersTreeInfos->SplineMeshForwardAxis);
-		DrawnComponent->SetSplineUpDir(OwnersTreeInfos->SplineMeshUpDir);
-	*/
+		DrawnComponent->SetStaticMesh(OwnersTreeInfos->StaticMeshForVisuals);
+
 		float SingleScale = OwnersTreeInfos->StandardCellWidth;
 		//const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength * StandardDrawUpVector * ParentCellTransform.GetScale3D().Z;
 		
@@ -386,7 +249,7 @@ void UTreeCellComponent::drawCellRecursively()
 			if (GrowVectorArray.Num() > PosInParent)
 			{
 				const FVector GrowVectorOfThis = GrowVectorArray[PosInParent];
-				ThisRot = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, GrowVectorOfThis);
+				ThisRot = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, GrowVectorOfThis); //TODO I think this is wrong and works by accident
 			}
 			else
 			{
@@ -401,12 +264,27 @@ void UTreeCellComponent::drawCellRecursively()
 		}
 		//else keep ZeroRotator(first cell in tree)
 		//const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
-		const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
-		
+		// 
+		const float LerpValue = DefOfThis ? DefOfThis->CorrelationWithStandardDrawDirection : 0.0f;
+		const FRotator LerpTarget = UKismetMathLibrary::MakeRotFromZ(StandardDrawUpVector);
+		FRotator EndRot = UKismetMathLibrary::
+			UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
+		EndRot.Roll = UKismetMathLibrary::Lerp(EndRot.Roll, LerpTarget.Roll, LerpValue);
+		EndRot.Pitch = UKismetMathLibrary::Lerp(EndRot.Pitch, LerpTarget.Pitch, LerpValue);
+
 
 		//DrawTransform = FTransform(FRotator(RotationAngleY,0.0f, RotationAngleX), Location, Scale);
 		DrawTransform = FTransform(EndRot, Location, Scale);
 		//DrawTransform = FTransform(UKismetMathLibrary::FindLookAtRotation(asdf, FVector::ZeroVector), Location, Scale);
+		
+		FRotator asdf = UKismetMathLibrary::MakeRotFromXZ(StandardDrawUpVector.RotateAngleAxis(90.0f, FVector(0.0f, 1.0f, 0.0f)), StandardDrawUpVector);
+		FRotator xyz = UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
+
+		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, TEST MAKEROTFROMXZ %f, %f, %f composyRotators: %f, %f, %f, ParentCellRot: %f, %f, %f"),
+			*GetNameSafe(this),
+			asdf.Roll , asdf.Pitch, asdf.Yaw,
+			xyz.Roll, xyz.Pitch, xyz.Yaw,
+			ParentCellTransform.GetRotation().Rotator().Roll, ParentCellTransform.GetRotation().Rotator().Pitch, ParentCellTransform.GetRotation().Rotator().Yaw);
 
 		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, StateString: %s Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
 			*GetNameSafe(this),

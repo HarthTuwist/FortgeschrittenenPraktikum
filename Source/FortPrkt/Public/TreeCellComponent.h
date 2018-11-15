@@ -50,7 +50,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		float RotationAngleX;
 
-	//how many degrees the growth of this cell is rotated around the X axis
+	//how many degrees the growth of this cell is rotated around the Y axis
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		float RotationAngleY;
 

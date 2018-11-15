@@ -67,13 +67,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float AdditionalRotationAngleY;
 
-	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
-		float HorizChildrenGrowFreedomX_Mean;
-	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
-		float HorizChildrenGrowFreedomX_Variance;
-
 	//Horizontal Children Circle Angle; The Angle between 0 and 180 that describes the circle on the sphere that is the outer limit of children grow vectors
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float HorChlCircleAngle;
@@ -81,13 +74,6 @@ public:
 	//Horizontal Children Circle Angle Variance; The Angle between 0 and HorChlCircleAngle that describes the variance allowed towards straigth grow  
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float HorChlCircleVarianceAngle;
-
-	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
-		float HorizChildrenGrowFreedomY_Mean;
-	//the grow directions of AtachedCellChildrens are distributed equally in the provided ranges (all 0 if growing straight is wanted)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
-		float HorizChildrenGrowFreedomY_Variance;
 
 
 	//multiplies StandardDrawLength
@@ -113,11 +99,6 @@ public:
 		AdditionalRotationAngleX = 0.0f;
 		AdditionalRotationAngleY = 0.0f;
 		DrawLengthMultiplier = 1.0f;
-
-		HorizChildrenGrowFreedomX_Variance =  45.0f;
-		HorizChildrenGrowFreedomX_Mean = -22.5f;
-		HorizChildrenGrowFreedomY_Variance = 0.0f; //45.0f;
-		HorizChildrenGrowFreedomY_Mean = 0.0f; //-22.0f;
 
 		HorChlCircleAngle = 15.0f;
 		HorChlCircleVarianceAngle = 0.0f;
@@ -197,4 +178,7 @@ public:
 	//TODO Change back to int32?
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		TMap<FString, FCellTypeDefinition> CellDefMap;
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		virtual void MutateOrganism();
 };
