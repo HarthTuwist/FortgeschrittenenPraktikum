@@ -73,6 +73,7 @@ void UTreeCellComponent::divideCell()
 		return;
 	}
 
+
 	if (OwnersTreeInfos->bUseGenomeMapReplacement)
 	{
 		Super::divideCell();
@@ -208,12 +209,20 @@ void UTreeCellComponent::drawCellRecursively()
 		DrawOriginPosition.X, DrawOriginPosition.Y, DrawOriginPosition.Z,
 		DrawEndPosition.X, DrawEndPosition.Y, DrawEndPosition.Z);
 		*/
+	const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
+	
+	UStaticMesh* CellMesh = OwnersTreeInfos->StaticMeshForVisuals;
 
-	if (OwnersTreeInfos && OwnersTreeInfos->StaticMeshForVisuals->IsValidLowLevel())
+	if (DefOfThis != nullptr && DefOfThis->bLEAVE_IsLeave)
 	{
-		const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
+		CellMesh = OwnersTreeInfos->StaticMeshForLeaves;
+	}
 
-		DrawnComponent->SetStaticMesh(OwnersTreeInfos->StaticMeshForVisuals);
+	if (OwnersTreeInfos && CellMesh->IsValidLowLevel())
+	{
+		
+
+		DrawnComponent->SetStaticMesh(CellMesh);
 
 		float SingleScale = OwnersTreeInfos->StandardCellWidth;
 		//const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength * StandardDrawUpVector * ParentCellTransform.GetScale3D().Z;
@@ -231,14 +240,22 @@ void UTreeCellComponent::drawCellRecursively()
 		//const float WeightThicknessBonus = FMath::Max(FMath::Pow(WeightBurden, 0.05) * 0.005, 1.0);
 		const float WeightThicknessBonus = FMath::Max(FMath::Pow(WeightBurden, 0.6), 1.0f) * 0.005f ;
 
+		const float CellWidthMultiplier = DefOfThis ? DefOfThis->WidthMultiplierX : 1.0f;
+
 		const FVector Scale = FVector(
-			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh + WeightThicknessBonus,
-			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh + WeightThicknessBonus,
+			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * CellWidthMultiplier + WeightThicknessBonus,
+			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * CellWidthMultiplier + WeightThicknessBonus,
 			OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh);
+
+		float PossibleLeaveGapMult = 1.0f;
+		if (DefOfThis && DefOfThis->bLEAVE_IsLeave)
+		{
+			PossibleLeaveGapMult = OwnersTreeInfos->LeaveGapMultiplier;
+		}
 
 		const FVector Location =
 			ParentCellTransform.GetLocation()
-			+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector);
+			+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector * PossibleLeaveGapMult);
 
 		FRotator ThisRot = FRotator::ZeroRotator;
 		if (ParentAsTreeCell != nullptr && ParentAsTreeCell->AttachedCellChildren.Num()>2)
@@ -267,8 +284,7 @@ void UTreeCellComponent::drawCellRecursively()
 		// 
 		const float LerpValue = DefOfThis ? DefOfThis->CorrelationWithStandardDrawDirection : 0.0f;
 		const FRotator LerpTarget = UKismetMathLibrary::MakeRotFromZ(StandardDrawUpVector);
-		FRotator EndRot = UKismetMathLibrary::
-			UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
+		FRotator EndRot = UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
 		EndRot.Roll = UKismetMathLibrary::Lerp(EndRot.Roll, LerpTarget.Roll, LerpValue);
 		EndRot.Pitch = UKismetMathLibrary::Lerp(EndRot.Pitch, LerpTarget.Pitch, LerpValue);
 

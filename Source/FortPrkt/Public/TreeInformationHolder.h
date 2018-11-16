@@ -80,18 +80,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float DrawLengthMultiplier;
 
-	//this map defines the multiply ways this cell could divide
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
-		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
+	//multiplies BOTH directions X and Y for now
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		float WidthMultiplierX;
 
 	//Bonus in cell size per cell burden
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
 		float WeightBurdenBonus;
 
+	//this map defines the multiple ways this cell could divide
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
 
-	//the cell divides at the next stage into this number of cells
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
-	//	TArray<int32> ChildrenNumbers;
+
+
+
+	/////
+	//////////////LEAVE Only Properties
+	/////
+	///// 
+	///// 
+
+	//basic bool that marks if cell is leave
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+		bool bLEAVE_IsLeave;
 
 	FCellTypeDefinition()
 	{
@@ -103,6 +115,12 @@ public:
 		HorChlCircleAngle = 15.0f;
 		HorChlCircleVarianceAngle = 0.0f;
 		WeightBurdenBonus = 0.0f;
+
+		WidthMultiplierX = 1.0f;
+
+		//leave stuff
+
+		bLEAVE_IsLeave = false;
 	}
 };
 
@@ -144,8 +162,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FVector SplineMeshUpDir;
 
+	//standard static mesh for visuals
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		UStaticMesh* StaticMeshForVisuals;
+
+	//specifically used for leaves
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		UStaticMesh* StaticMeshForLeaves;
 
 	//if this string is in the state of the cell we divide horizontally
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
@@ -174,6 +197,10 @@ public:
 	//if this is in state string, this cell should grow back
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		FString GrowBackMarker;
+
+	//StandardDrawUpVector is multiplied by this to determine total distance from leave to parent (should be bigger than 1)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float LeaveGapMultiplier;
 
 	//TODO Change back to int32?
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")

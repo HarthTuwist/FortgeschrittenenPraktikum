@@ -24,6 +24,8 @@ UTreeInformationHolder::UTreeInformationHolder()
 
 	BaseBranchingAngleX = 15.0f;
 	BaseBranchingAngleY = 15.0f;
+
+	LeaveGapMultiplier = 1.01f;
 }
 
 void UTreeInformationHolder::BeginPlay()
