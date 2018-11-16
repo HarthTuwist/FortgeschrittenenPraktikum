@@ -2,7 +2,7 @@
 
 #include "DesignatedRootCellComponent.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogCell, VeryVerbose, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
 
 void UDesignatedRootCellComponent::BeginPlay()
 {

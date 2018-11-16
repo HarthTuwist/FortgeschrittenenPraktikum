@@ -3,7 +3,7 @@
 #include "CellComponent.h"
 #include "GameFramework/Actor.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogCell, VeryVerbose, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
 
 // Sets default values for this component's properties
 UCellComponent::UCellComponent()

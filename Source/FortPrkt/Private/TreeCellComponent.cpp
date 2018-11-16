@@ -4,7 +4,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/SceneComponent.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogCell, VeryVerbose, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
 
 UTreeCellComponent::UTreeCellComponent()
 {
@@ -282,8 +282,19 @@ void UTreeCellComponent::drawCellRecursively()
 		//else keep ZeroRotator(first cell in tree)
 		//const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
 		// 
-		const float LerpValue = DefOfThis ? DefOfThis->CorrelationWithStandardDrawDirection : 0.0f;
-		const FRotator LerpTarget = UKismetMathLibrary::MakeRotFromZ(StandardDrawUpVector);
+		const float LerpValue = DefOfThis ? FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection) : 0.0f;
+		FRotator LerpTarget;
+
+		if (DefOfThis != nullptr && DefOfThis->CorrelationWithStandardDrawDirection < 0.0f)
+		{
+			LerpTarget = UKismetMathLibrary::MakeRotFromZX(StandardDrawUpVector * (-1), (StandardDrawUpVector * (-1)).RotateAngleAxis(90.0f, FVector(0.0f, 1.0f, 0.0f)));
+		}
+
+		else
+		{
+			LerpTarget = UKismetMathLibrary::MakeRotFromZX(StandardDrawUpVector , StandardDrawUpVector.RotateAngleAxis(90.0f, FVector(0.0f, 1.0f, 0.0f)));
+		}
+
 		FRotator EndRot = UKismetMathLibrary::ComposeRotators(ThisRot, ParentCellTransform.GetRotation().Rotator());
 		EndRot.Roll = UKismetMathLibrary::Lerp(EndRot.Roll, LerpTarget.Roll, LerpValue);
 		EndRot.Pitch = UKismetMathLibrary::Lerp(EndRot.Pitch, LerpTarget.Pitch, LerpValue);
