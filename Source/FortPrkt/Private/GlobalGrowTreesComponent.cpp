@@ -14,7 +14,7 @@ UGlobalGrowTreesComponent::UGlobalGrowTreesComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	RayTraceAngleXMin = -15.0f;
-	RayTraceAngleYStep = 3.0f;
+	RayTraceAngleXStep = 3.0f;
 
 	RayTraceAngleYMin = -15.0f;
 	RayTraceAngleYStep = 3.0f;
@@ -132,10 +132,10 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 	{
 		for (int32 y = 0; y < RayTraceIterationsY; y++)
 		{
-			const FVector RelativeXAxis = RotFromZ.RotateVector(FVector(1.0f, 0.0f, 0.0f));
-			const FVector RelativeYAxis = RotFromZ.RotateVector(FVector(0.0f, 1.0f, 0.0f));
+			const FVector RelativeXAxis = FVector::CrossProduct(LineTraceDirectionVector, FVector(1.0f, 1.0f, 1.0f)).GetSafeNormal();// RotFromZ.RotateVector(FVector(1.0f, 0.0f, 0.0f));
+			//const FVector RelativeYAxis = RotFromZ.RotateVector(FVector(0.0f, 1.0f, 0.0f));
 
-			const FVector CurrentTraceEnd = LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis).RotateAngleAxis(y * RayTraceAngleYStep, LineTraceDirectionVector);
+			const FVector CurrentTraceEnd = LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis).RotateAngleAxis(y * RayTraceAngleYStep, LineTraceDirectionVector.GetSafeNormal());
 			//const FVector CurrentTraceEnd = FVector::ZeroVector;
 			FHitResult Rslt = FHitResult();
 			FCollisionQueryParams Params = FCollisionQueryParams();
@@ -143,8 +143,18 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 			Params.bTraceAsyncScene = false;
 			const FVector LineTraceOriginWorld = LightTraceOriginPosition + GetOwner()->GetActorLocation();
 			const FVector LineTraceEndWorld = CurrentTraceEnd + GetOwner()->GetActorLocation();
-			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_Pawn, Params, FCollisionResponseParams());
+			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_GameTraceChannel1 , Params, FCollisionResponseParams());
 
+			if (Rslt.bBlockingHit == true)
+			{
+				//UE_LOG(LogCell_MasterGrower, Log, TEXT("Light LineTrace Hit Something: %s"),
+				//	*GetNameSafe(Rslt.Component.Get()));
+				
+				//TODO this is bullshit
+				//Cast<UTreeCellComponent>(Rslt.Actor.Get())->LightThisIteration++;
+			}
+
+/*	
 			UE_LOG(LogCell_MasterGrower, Log, TEXT("Light Linetracing, LineTraceDir: %f, %f, %f, TraceCenter: %f, %f, %f, End: %f, %f, %f , hit: %s, XAxis: %f, %f, %f"),
 				//LineTraceOriginWorld.X, LineTraceOriginWorld.Y, LineTraceOriginWorld.Z,
 				LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis).X, LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis).Y, LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis).Z,
@@ -153,21 +163,22 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 				*GetNameSafe(Rslt.Actor.Get()),
 				RelativeXAxis.X, RelativeXAxis.Y, RelativeXAxis.Z);
 
-			
+		
 			DrawDebugLine(
 				World,
 				LineTraceOriginWorld,
-				LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis) + GetOwner()->GetActorLocation(),
-				//LineTraceEndWorld,
+				//LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis) + GetOwner()->GetActorLocation(),
+				LineTraceEndWorld,
 				FColor(255, 0, 0),
 				true,
-				30.0f,
+				0.5f,
 				0,
 				3.0f
 			); 
 
-
+*/
 		}
 	}
+
 }
 

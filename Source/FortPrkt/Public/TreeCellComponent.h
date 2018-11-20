@@ -92,6 +92,9 @@ public:
 	UPROPERTY()
 		int32 WeightBurden;
 
+	UPROPERTY()
+		int32 LightThisIteration;
+
 private:
 	//Empty if not calculated yet. Might contain more entries then there are children
 	UPROPERTY()

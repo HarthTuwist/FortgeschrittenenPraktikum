@@ -58,6 +58,7 @@ void UTreeCellComponent::CopyPropertiesFromParent(UCellComponent * Parent)
 
 	//always set this properties to standard values
 	IterationsSinceCreation = 0;
+	LightThisIteration = 0;
 
 }
 
@@ -200,7 +201,6 @@ void UTreeCellComponent::drawCellRecursively()
 //	DrawnComponent->SetupAttachment(this);
 	DrawnComponent->SetupAttachment(GetOwner()->GetRootComponent());
 	DrawnComponent->RegisterComponent();
-	
 
 	//DrawnComponent->SetupAttachment(this);
 	/*UE_LOG(LogCell, VeryVerbose, TEXT("DrawTreeCell, Name:, %s, StateString: %s OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
@@ -216,11 +216,14 @@ void UTreeCellComponent::drawCellRecursively()
 	if (DefOfThis != nullptr && DefOfThis->bLEAVE_IsLeave)
 	{
 		CellMesh = OwnersTreeInfos->StaticMeshForLeaves;
+
+		//set collision channel 
+		DrawnComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
+		DrawnComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 
 	if (OwnersTreeInfos && CellMesh->IsValidLowLevel())
 	{
-		
 
 		DrawnComponent->SetStaticMesh(CellMesh);
 
@@ -431,6 +434,10 @@ void UTreeCellComponent::SetCellStateTrait(EStateTraitEnum TraitEnum, int32 NewV
 		WeightBurden = NewValue;
 	}
 
+	else if (TraitEnum == EStateTraitEnum::TRAIT_LIGHT)
+	{
+		LightThisIteration = NewValue;
+	}
 }
 
 int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
@@ -443,6 +450,11 @@ int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
 	else if (TraitEnum == EStateTraitEnum::TRAIT_WEIGHTBURDEN)
 	{
 		return WeightBurden;
+	}
+
+	else if (TraitEnum == EStateTraitEnum::TRAIT_LIGHT)
+	{
+		return LightThisIteration;
 	}
 
 	else

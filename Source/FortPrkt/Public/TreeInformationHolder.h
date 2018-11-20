@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "OrganismInformationHolder.h"
 #include "Components/SplineMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "TreeInformationHolder.generated.h"
 
 /**
@@ -16,6 +17,7 @@ enum class EStateTraitEnum : uint8
 {
 	TRAIT_LIFETIME = 0 UMETA(DisplayName = "TimeSinceCreation"),
 	TRAIT_WEIGHTBURDEN = 1 UMETA(DisplayName = "WeightBurden"),
+	TRAIT_LIGHT = 2 UMETA(DisplayName = "Light"),
 
 	FIRST_INVALID UMETA(Hidden)
 };
@@ -216,4 +218,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Genome")
 		virtual void BlindlyRandomCellDivides();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		UInstancedStaticMeshComponent* LeaveGapMultiplier; 
+	
 };
