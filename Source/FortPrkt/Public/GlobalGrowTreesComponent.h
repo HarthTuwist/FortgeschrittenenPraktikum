@@ -26,13 +26,42 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cell")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
 		TArray<UDesignatedRootCellComponent*> RootsOfCellsToGrow;
 
-	UFUNCTION(BlueprintCallable, Category = "Cell")
+	UFUNCTION(BlueprintCallable, Category = "CellGrow")
 		void IterateOverRoots();
 
+//light ray trace stuff
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		FVector LightTraceOriginPosition;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		FVector LightTraceUnrotatedEndPosition;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		float RayTraceAngleXMin;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		float RayTraceAngleXStep;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		float RayTraceAngleYMin;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		float RayTraceAngleYStep;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		int32 RayTraceIterationsX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		int32 RayTraceIterationsY;
+
+	UFUNCTION(BlueprintCallable)
+	void RayTraceToLeaves();
 protected:
 	//calculates all CellStateTraits
 	void CalculateCellStateTraits();
+
+	
 };
