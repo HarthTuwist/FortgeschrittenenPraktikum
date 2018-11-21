@@ -2,6 +2,8 @@
 
 #include "TreeCellComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "DrawDebugHelpers.h "
 #include "Components/SceneComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
@@ -9,6 +11,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
 UTreeCellComponent::UTreeCellComponent()
 {
 	NewCellClass = UTreeCellComponent::StaticClass();
+
+	InstancedMeshIdThisIteration = -42;
 }
 
 void UTreeCellComponent::BeginPlay()
@@ -196,11 +200,11 @@ void UTreeCellComponent::drawCellRecursively()
 	}
 
 	//DrawnComponent = NewObject<USplineMeshComponent>(GetOwner());
-	DrawnComponent = NewObject<UStaticMeshComponent>(GetOwner());
+/*	DrawnComponent = NewObject<UStaticMeshComponent>(GetOwner());
 	DrawnComponent->SetMobility(EComponentMobility::Movable);
 //	DrawnComponent->SetupAttachment(this);
 	DrawnComponent->SetupAttachment(GetOwner()->GetRootComponent());
-	DrawnComponent->RegisterComponent();
+	DrawnComponent->RegisterComponent();*/
 
 	//DrawnComponent->SetupAttachment(this);
 	/*UE_LOG(LogCell, VeryVerbose, TEXT("DrawTreeCell, Name:, %s, StateString: %s OriginPos: %f, %f, %f , EndPos: %f, %f, %f"),
@@ -210,22 +214,26 @@ void UTreeCellComponent::drawCellRecursively()
 		DrawEndPosition.X, DrawEndPosition.Y, DrawEndPosition.Z);
 		*/
 	const FCellTypeDefinition* DefOfThis = OwnersTreeInfos->CellDefMap.Find(StateString);
-	
 	UStaticMesh* CellMesh = OwnersTreeInfos->StaticMeshForVisuals;
+	bool bIsLeave = false;
 
 	if (DefOfThis != nullptr && DefOfThis->bLEAVE_IsLeave)
 	{
 		CellMesh = OwnersTreeInfos->StaticMeshForLeaves;
+		bIsLeave = true;
 
 		//set collision channel 
-		DrawnComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
-		DrawnComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+//		DrawnComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
+//		DrawnComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
+
+	int32 AddedInstanceID = -42;
+	int32 AddedPointerID = -42;
 
 	if (OwnersTreeInfos && CellMesh->IsValidLowLevel())
 	{
 
-		DrawnComponent->SetStaticMesh(CellMesh);
+		//DrawnComponent->SetStaticMesh(CellMesh);
 
 		float SingleScale = OwnersTreeInfos->StandardCellWidth;
 		//const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->StandardDrawLength * StandardDrawUpVector * ParentCellTransform.GetScale3D().Z;
@@ -318,16 +326,125 @@ void UTreeCellComponent::drawCellRecursively()
 			ParentCellTransform.GetRotation().Rotator().Roll, ParentCellTransform.GetRotation().Rotator().Pitch, ParentCellTransform.GetRotation().Rotator().Yaw);
 		*/
 
-		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, StateString: %s Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
+		UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name: %s, StateString: %s Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
 			*GetNameSafe(this),
 			*StateString,
 			DrawTransform.GetLocation().X, DrawTransform.GetLocation().Y, DrawTransform.GetLocation().Z,
 			DrawTransform.GetScale3D().X, DrawTransform.GetScale3D().Y, DrawTransform.GetScale3D().Z,
 			DrawTransform.GetRotation().Rotator().Roll, DrawTransform.GetRotation().Rotator().Pitch, DrawTransform.GetRotation().Rotator().Yaw);
 
-		DrawnComponent->SetWorldTransform(DrawTransform);
-		DrawnComponent->SetCastShadow(false);
+	//	DrawnComponent->SetWorldTransform(DrawTransform);
+	//	DrawnComponent->SetCastShadow(false);
+	//	
+		bool bActuallyAddInstance  = true;
+
+		if (AttachedCellChildren.Num() == 0 && !DefOfThis->bIgnoreCollisionCheck) //only check for cells without children whether they collide
+		{
+			if (true)//(bIsLeave)
+			{
+			/*	UKismetSystemLibrary::BoxTraceMulti(GetWorld(),
+					DrawTransform.GetLocation(),
+					DrawTransform.GetLocation() + DrawTransform.GetRotation().RotateVector(StandardDrawUpVector),
+					FVector(OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2, OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2, OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2),
+					DrawTransform.GetRotation(), 
+				)*/
+
+				TArray <FOverlapResult > HitArray = TArray<FOverlapResult>();
+				FCollisionObjectQueryParams CollisionObjectParams = FCollisionObjectQueryParams();
+				CollisionObjectParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel1);
+				FCollisionQueryParams QueryParams = FCollisionQueryParams();
+				QueryParams.bFindInitialOverlaps = true;
+				//const FName TraceTag("TrunkCollisionTag");
+				//QueryParams.TraceTag = TraceTag;
+
+
+				const FVector CapsuleLoc = DrawTransform.GetLocation() + DrawTransform.GetRotation().RotateVector(StandardDrawUpVector / 2);
+				const float CapsuleHalfHeigth = DrawTransform.GetScale3D().Z * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2 * 0.8;
+				const float CapsuleRadius = DrawTransform.GetScale3D().X * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2;
+
+				//const float CapsuleHalfHeigth = OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2;
+				//const float CapsuleRadius = DrawTransform.GetScale3D().X * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2;
+
+				//GetWorld()->Overlapmulti(HitArray, DrawTransform.GetLocation(), DrawTransform.GetRotation());
+				GetWorld()->OverlapMultiByChannel(HitArray,
+					CapsuleLoc,
+					DrawTransform.GetRotation(),
+					ECollisionChannel::ECC_GameTraceChannel1,
+					FCollisionShape::MakeCapsule(CapsuleHalfHeigth , CapsuleRadius),
+					QueryParams);
+
+				DrawDebugCapsule(
+					GetWorld(),
+					CapsuleLoc,
+					CapsuleHalfHeigth,
+					CapsuleRadius,
+					DrawTransform.GetRotation(), FColor(0, 0, 240), false, 5.0f);
+
+				//UE_LOG(LogCell, Log, TEXT("HitComponents : "),
+				//	*GetNameSafe(this),
+
+					//+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector * PossibleLeaveGapMult)
+				//const int32 ParentId = 
+
+
+
+
+				for (FOverlapResult Rslt : HitArray)
+				{
+					UE_LOG(LogCell, Log, TEXT("Collided with: %s, Nr: %u"),
+						*GetNameSafe(Rslt.Component.Get()),
+						Rslt.ItemIndex);
+
+					bActuallyAddInstance = false;
+				}
+
+				if (HitArray.Num() > 0)
+				{
+					bActuallyAddInstance = false;
+				}
+
+		//		UE_LOG(LogCell, Log, TEXT("Collided with: length of Hit Array:  %u"),
+			//		HitArray.Num());
+			}
+			else
+			{
+
+			}
+		}
+
+		if (bActuallyAddInstance)
+		{
+			if (bIsLeave)
+			{
+				AddedInstanceID = OwnersTreeInfos->LeavesInstanceComponent->AddInstance(DrawTransform);
+				AddedPointerID = OwnersTreeInfos->LeavesArrayThisIteration.Add(this);
+			}
+
+			else
+			{
+				AddedInstanceID = OwnersTreeInfos->TrunksInstanceComponent->AddInstance(DrawTransform);
+				AddedPointerID = OwnersTreeInfos->TrunkArrayThisIteration.Add(this);
+			}
+
+		}
+
+		else
+		{
+			//destroy this if we get a collision
+			//this->UnregisterComponent();
+			DestroyComponent();
+		}
 	}
+
+	UE_LOG(LogCell, VeryVerbose, TEXT("Drawing TreeCell, Name:, %s, StateString: %s, InstanceId: %u (%u) ,Loc: %f, %f, %f Scale: %f, %f, %f Rot: %f, %f, %f"),
+		*GetNameSafe(this),
+		*StateString,
+		AddedInstanceID,
+		AddedPointerID,
+		DrawTransform.GetLocation().X, DrawTransform.GetLocation().Y, DrawTransform.GetLocation().Z,
+		DrawTransform.GetScale3D().X, DrawTransform.GetScale3D().Y, DrawTransform.GetScale3D().Z,
+		DrawTransform.GetRotation().Rotator().Roll, DrawTransform.GetRotation().Rotator().Pitch, DrawTransform.GetRotation().Rotator().Yaw);
+
 
 
 

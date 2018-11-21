@@ -139,7 +139,7 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 			//const FVector CurrentTraceEnd = FVector::ZeroVector;
 			FHitResult Rslt = FHitResult();
 			FCollisionQueryParams Params = FCollisionQueryParams();
-		//	Params.TraceTag = TraceTag;
+			//Params.TraceTag = TraceTag; //comment in to show raytrace debug lines
 			Params.bTraceAsyncScene = false;
 			const FVector LineTraceOriginWorld = LightTraceOriginPosition + GetOwner()->GetActorLocation();
 			const FVector LineTraceEndWorld = CurrentTraceEnd + GetOwner()->GetActorLocation();
@@ -147,9 +147,50 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 			if (Rslt.bBlockingHit == true)
 			{
-				//UE_LOG(LogCell_MasterGrower, Log, TEXT("Light LineTrace Hit Something: %s"),
-				//	*GetNameSafe(Rslt.Component.Get()));
-				
+				//UE_LOG(LogCell_MasterGrower, Log, TEXT("Light LineTrace Hit Something: %s, Number: %u"),
+				//	*GetNameSafe(Rslt.Component.Get()),
+				//	Rslt.Item);
+
+				UInstancedStaticMeshComponent* HitComponent = Cast<UInstancedStaticMeshComponent>(Rslt.Component.Get());
+
+				if (HitComponent != nullptr)
+				{
+					//TODO implement system so we can hit another cell than trees? Identify with name?
+					if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance"))
+					{
+						TArray<UActorComponent*> CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+
+						if (CompArray.Num() > 0)
+						{
+							UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
+
+							UTreeCellComponent* HitTreeCellComponent = HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get();
+
+							if (HitTreeCellComponent)
+							{
+								HitTreeCellComponent->LightThisIteration++;
+
+								if (HitTreeInfos->bShowLightRaycastHitMarkers)
+								{
+									DrawDebugPoint(GetWorld(), Rslt.ImpactPoint, 10, FColor(220, 100, 30), true, 10.0f);
+								}
+							}
+							else
+							{
+								UE_LOG(LogCell_MasterGrower, Error, TEXT("Lighttrace: Can't find TreeCellComponent according to number %u for hit actor: %s"),
+									Rslt.Item,
+									*GetNameSafe(Rslt.Actor.Get()));
+							}
+						}
+
+					}
+
+					else
+					{
+						UE_LOG(LogCell_MasterGrower, Log, TEXT("Lighttrace hit InstancedStaticMesh != 'LeavesMeshInstance', is this supposed to happen?"));
+					}
+				}
+					
 				//TODO this is bullshit
 				//Cast<UTreeCellComponent>(Rslt.Actor.Get())->LightThisIteration++;
 			}

@@ -6,11 +6,16 @@
 #include "OrganismInformationHolder.h"
 #include "Components/SplineMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Containers/Array.h"
 #include "TreeInformationHolder.generated.h"
 
 /**
  * 
  */
+
+//forward declarations
+class UTreeCellComponent;
+
 
 UENUM()
 enum class EStateTraitEnum : uint8
@@ -87,14 +92,16 @@ public:
 		float WidthMultiplierX;
 
 	//Bonus in cell size per cell burden
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float WeightBurdenBonus;
 
 	//this map defines the multiple ways this cell could divide
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
 
-
+	//ignores collision check on cells with no children
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		bool bIgnoreCollisionCheck;
 
 
 	/////
@@ -104,7 +111,7 @@ public:
 	///// 
 
 	//basic bool that marks if cell is leave
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypDefinition")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		bool bLEAVE_IsLeave;
 
 	FCellTypeDefinition()
@@ -123,6 +130,7 @@ public:
 		//leave stuff
 
 		bLEAVE_IsLeave = false;
+		bIgnoreCollisionCheck = false;
 	}
 };
 
@@ -219,7 +227,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Genome")
 		virtual void BlindlyRandomCellDivides();
 
+	//Component that stores static mesh instances for the trunks
+	UPROPERTY(BlueprintReadOnly, Category = "Genome")
+		UInstancedStaticMeshComponent* TrunksInstanceComponent;
+
+	//Component that stores static mesh instances for the leaves
+	UPROPERTY(BlueprintReadOnly, Category = "Genome")
+		UInstancedStaticMeshComponent* LeavesInstanceComponent;
+
+	//this maps the static mesh instance numbers to the trunk cells
+	UPROPERTY()
+		TArray<TWeakObjectPtr<UTreeCellComponent >> TrunkArrayThisIteration;
+
+	//this maps the static mesh instance numbers to the trunk cells
+	UPROPERTY()
+		TArray<TWeakObjectPtr<UTreeCellComponent >> LeavesArrayThisIteration;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
-		UInstancedStaticMeshComponent* LeaveGapMultiplier; 
-	
+		bool bShowLightRaycastHitMarkers;
 };

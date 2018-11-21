@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "DesignatedRootCellComponent.h"
+#include "TreeCellComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
 
@@ -28,16 +29,27 @@ void UDesignatedRootCellComponent::drawCellRecursively()
 		*GetNameSafe(this),
 		AttachedCellChildren.Num());
 
+
+	//if we belong to a tree clear all instances before drawing children
+	TArray<UActorComponent*> CompArray = GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+	if (CompArray.Num() > 0)
+	{
+		UTreeInformationHolder* OwnersTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
+
+		OwnersTreeInfos->LeavesInstanceComponent->ClearInstances();
+		OwnersTreeInfos->TrunksInstanceComponent->ClearInstances();
+		OwnersTreeInfos->TrunkArrayThisIteration.Empty();
+		OwnersTreeInfos->LeavesArrayThisIteration.Empty();
+
+	}
+
 	for (UCellComponent* c : AttachedCellChildren)
 	{
-
-
-
 		c->drawCellRecursively();
 	}
 }
 
 void UDesignatedRootCellComponent::divideCell()
 {
-	//do nothing her; don't divide the designated root
+	//do nothing here; don't divide the designated root
 }

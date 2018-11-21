@@ -26,6 +26,12 @@ UTreeInformationHolder::UTreeInformationHolder()
 	BaseBranchingAngleY = 15.0f;
 
 	LeaveGapMultiplier = 1.01f;
+
+
+	//Mesh Setup stuff
+	TrunksInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("StaticMeshInstance"));
+	LeavesInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LeavesMeshInstance"));
+
 }
 
 void UTreeInformationHolder::BeginPlay()
@@ -42,6 +48,20 @@ void UTreeInformationHolder::BeginPlay()
 		}
 	}
 
+	if (StaticMeshForVisuals->IsValidLowLevel())
+	{
+		TrunksInstanceComponent->SetStaticMesh(StaticMeshForVisuals);
+
+		TrunksInstanceComponent->SetCastShadow(false);
+	}
+
+	if (StaticMeshForLeaves->IsValidLowLevel())
+	{
+		LeavesInstanceComponent->SetStaticMesh(StaticMeshForLeaves);
+
+		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
+		LeavesInstanceComponent->SetCastShadow(false);
+	}
 }
 
 void UTreeInformationHolder::MutateOrganism()

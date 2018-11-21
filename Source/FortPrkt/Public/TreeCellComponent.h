@@ -70,6 +70,11 @@ public:
 	UFUNCTION(Blueprintpure, Category = "Cellproperties")
 		void GetRawHorizChilDrawVecs(TArray<FVector>& Vectors);
 
+	//Static Mesh instance of this cell
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
+		int32 InstancedMeshIdThisIteration;
+
+
 	////////////////////
 	//CellStateTraits, eg. properties that have an enum and can influence division
 	////////////////////
