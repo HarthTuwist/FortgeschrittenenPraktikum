@@ -27,6 +27,10 @@ UTreeInformationHolder::UTreeInformationHolder()
 
 	LeaveGapMultiplier = 1.01f;
 
+	bShowLightRaycastHitMarkers = false;
+	bShowGrowCollisionMarkers = false;
+
+	LeavesCollisionCheckMultiplier = 1.0f;
 
 	//Mesh Setup stuff
 	TrunksInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("StaticMeshInstance"));
@@ -52,6 +56,7 @@ void UTreeInformationHolder::BeginPlay()
 	{
 		TrunksInstanceComponent->SetStaticMesh(StaticMeshForVisuals);
 
+		TrunksInstanceComponent->bMultiBodyOverlap = true;
 		TrunksInstanceComponent->SetCastShadow(false);
 	}
 
@@ -59,6 +64,7 @@ void UTreeInformationHolder::BeginPlay()
 	{
 		LeavesInstanceComponent->SetStaticMesh(StaticMeshForLeaves);
 
+		LeavesInstanceComponent->bMultiBodyOverlap = true;
 		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		LeavesInstanceComponent->SetCastShadow(false);
 	}

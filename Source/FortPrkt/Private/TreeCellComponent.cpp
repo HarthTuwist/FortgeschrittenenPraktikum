@@ -4,9 +4,11 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "DrawDebugHelpers.h "
+#include "WorldCollision.h"
 #include "Components/SceneComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCell_Collision, Log, All);
 
 UTreeCellComponent::UTreeCellComponent()
 {
@@ -339,76 +341,107 @@ void UTreeCellComponent::drawCellRecursively()
 		bool bActuallyAddInstance  = true;
 
 		if (AttachedCellChildren.Num() == 0 && !DefOfThis->bIgnoreCollisionCheck) //only check for cells without children whether they collide
-		{
-			if (true)//(bIsLeave)
+		{		
+			
+			TArray <FOverlapResult > HitArray = TArray<FOverlapResult>();
+			FCollisionObjectQueryParams CollisionObjectParams = FCollisionObjectQueryParams();
+			CollisionObjectParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel1);
+			FCollisionQueryParams QueryParams = FCollisionQueryParams();
+			QueryParams.bFindInitialOverlaps = true;
+			//const FName TraceTag("TrunkCollisionTag");
+			//QueryParams.TraceTag = TraceTag;
+
+			FCollisionShape OverlapShape;
+			FVector ShapeLocation;
+
+			if (!bIsLeave)
 			{
-			/*	UKismetSystemLibrary::BoxTraceMulti(GetWorld(),
-					DrawTransform.GetLocation(),
-					DrawTransform.GetLocation() + DrawTransform.GetRotation().RotateVector(StandardDrawUpVector),
-					FVector(OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2, OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2, OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2),
-					DrawTransform.GetRotation(), 
-				)*/
-
-				TArray <FOverlapResult > HitArray = TArray<FOverlapResult>();
-				FCollisionObjectQueryParams CollisionObjectParams = FCollisionObjectQueryParams();
-				CollisionObjectParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel1);
-				FCollisionQueryParams QueryParams = FCollisionQueryParams();
-				QueryParams.bFindInitialOverlaps = true;
-				//const FName TraceTag("TrunkCollisionTag");
-				//QueryParams.TraceTag = TraceTag;
-
-
-				const FVector CapsuleLoc = DrawTransform.GetLocation() + DrawTransform.GetRotation().RotateVector(StandardDrawUpVector / 2);
-				const float CapsuleHalfHeigth = DrawTransform.GetScale3D().Z * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2 * 0.8;
+				ShapeLocation = DrawTransform.GetLocation() + DrawTransform.GetRotation().RotateVector(StandardDrawUpVector / 2);
+				const float CapsuleHalfHeigth = DrawTransform.GetScale3D().Z * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2 * 0.8; //TOODO Remove magic number I
 				const float CapsuleRadius = DrawTransform.GetScale3D().X * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2;
 
 				//const float CapsuleHalfHeigth = OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2;
 				//const float CapsuleRadius = DrawTransform.GetScale3D().X * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2;
 
 				//GetWorld()->Overlapmulti(HitArray, DrawTransform.GetLocation(), DrawTransform.GetRotation());
-				GetWorld()->OverlapMultiByChannel(HitArray,
-					CapsuleLoc,
-					DrawTransform.GetRotation(),
-					ECollisionChannel::ECC_GameTraceChannel1,
-					FCollisionShape::MakeCapsule(CapsuleHalfHeigth , CapsuleRadius),
-					QueryParams);
 
-				DrawDebugCapsule(
-					GetWorld(),
-					CapsuleLoc,
-					CapsuleHalfHeigth,
-					CapsuleRadius,
-					DrawTransform.GetRotation(), FColor(0, 0, 240), false, 5.0f);
+				OverlapShape = FCollisionShape::MakeCapsule(CapsuleHalfHeigth, CapsuleRadius);
 
-				//UE_LOG(LogCell, Log, TEXT("HitComponents : "),
-				//	*GetNameSafe(this),
-
-					//+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector * PossibleLeaveGapMult)
-				//const int32 ParentId = 
-
-
-
-
-				for (FOverlapResult Rslt : HitArray)
+				if (OwnersTreeInfos->bShowGrowCollisionMarkers)
 				{
-					UE_LOG(LogCell, Log, TEXT("Collided with: %s, Nr: %u"),
-						*GetNameSafe(Rslt.Component.Get()),
-						Rslt.ItemIndex);
-
-					bActuallyAddInstance = false;
+					DrawDebugCapsule(
+						GetWorld(),
+						ShapeLocation,
+						CapsuleHalfHeigth,
+						CapsuleRadius,
+						DrawTransform.GetRotation(),
+						FColor(0, 0, 240),
+						false,
+						3.0f);
 				}
 
-				if (HitArray.Num() > 0)
-				{
-					bActuallyAddInstance = false;
-				}
-
-		//		UE_LOG(LogCell, Log, TEXT("Collided with: length of Hit Array:  %u"),
-			//		HitArray.Num());
 			}
+
 			else
 			{
+				ShapeLocation = DrawTransform.GetLocation();
+				const float BoxHalfXY = DrawTransform.GetScale3D().X * OwnersTreeInfos->ZAxisHeightOfDrawnMesh / 2 * OwnersTreeInfos->LeavesCollisionCheckMultiplier;
+				const FVector BoxHalfExtents = FVector(BoxHalfXY, BoxHalfXY, 0.1f); //TODO Remove magic number II
 
+				OverlapShape = FCollisionShape::MakeBox(BoxHalfExtents);
+
+				if (OwnersTreeInfos->bShowGrowCollisionMarkers)
+				{
+					DrawDebugBox(
+						GetWorld(),
+						ShapeLocation,
+						BoxHalfExtents * 2,
+						DrawTransform.GetRotation(),
+						FColor(0, 240, 240),
+						false,
+						3.0f);
+				}
+
+			}
+
+			GetWorld()->OverlapMultiByChannel(HitArray,
+				ShapeLocation,
+				DrawTransform.GetRotation(),
+				ECollisionChannel::ECC_WorldStatic,
+				OverlapShape,
+				QueryParams);
+
+			TArray<int32> InstanceIdsToIgnore = TArray<int32>();
+				
+			if (ParentAsTreeCell != nullptr)
+			{
+				InstanceIdsToIgnore.Add(ParentAsTreeCell->InstancedMeshIdThisIteration);
+
+				for (UCellComponent* Sibling : ParentAsTreeCell->AttachedCellChildren)
+				{
+					const UTreeCellComponent* SiblingAsTreeCell = Cast<UTreeCellComponent>(Sibling);
+					if (SiblingAsTreeCell != nullptr)
+					{
+						InstanceIdsToIgnore.Add(SiblingAsTreeCell->InstancedMeshIdThisIteration);
+					}
+						
+				}
+			}
+				
+
+			//TODO this does not check if overlap is actually static mesh instance, but this shouldn't be a problem?
+			for (FOverlapResult Rslt : HitArray)
+			{
+				UE_LOG(LogCell_Collision, VeryVerbose, TEXT("Collided with: %s, Nr: %u"),
+					*GetNameSafe(Rslt.Component.Get()),
+					Rslt.ItemIndex);
+
+				if (!InstanceIdsToIgnore.Contains(Rslt.ItemIndex))
+				{
+					bActuallyAddInstance = false;
+				}
+
+					
 			}
 		}
 
@@ -426,6 +459,7 @@ void UTreeCellComponent::drawCellRecursively()
 				AddedPointerID = OwnersTreeInfos->TrunkArrayThisIteration.Add(this);
 			}
 
+			InstancedMeshIdThisIteration = AddedInstanceID;
 		}
 
 		else

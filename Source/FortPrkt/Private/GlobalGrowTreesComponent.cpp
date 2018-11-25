@@ -172,12 +172,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 								if (HitTreeInfos->bShowLightRaycastHitMarkers)
 								{
-									DrawDebugPoint(GetWorld(), Rslt.ImpactPoint, 10, FColor(220, 100, 30), true, 10.0f);
+									DrawDebugPoint(GetWorld(), Rslt.ImpactPoint, 10, FColor(220, 100, 30), true, 3.0f);
 								}
 							}
 							else
 							{
-								UE_LOG(LogCell_MasterGrower, Error, TEXT("Lighttrace: Can't find TreeCellComponent according to number %u for hit actor: %s"),
+								UE_LOG(LogCell_MasterGrower, Error, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s"),
 									Rslt.Item,
 									*GetNameSafe(Rslt.Actor.Get()));
 							}
