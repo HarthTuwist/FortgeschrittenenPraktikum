@@ -249,6 +249,7 @@ void UTreeCellComponent::drawCellRecursively()
 		//}
 
 		const FVector StandardDrawUpVector = OwnersTreeInfos->StandardDrawDirection * (OwnersTreeInfos->StandardDrawLength + ParentWeightBurden);
+		const float StandardDrawScale = OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh; //scale so that the height of the drawn mesh = StandardDrawLength
 	
 		//const float WeightThicknessBonus = FMath::Max(FMath::Pow(WeightBurden, 0.05) * 0.005, 1.0);
 		const float WeightThicknessBonus = FMath::Max(FMath::Pow(WeightBurden, 0.6), 1.0f) * 0.005f ;
@@ -256,9 +257,9 @@ void UTreeCellComponent::drawCellRecursively()
 		const float CellWidthMultiplier = DefOfThis ? DefOfThis->WidthMultiplierX : 1.0f;
 
 		const FVector Scale = FVector(
-			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * CellWidthMultiplier + WeightThicknessBonus,
-			OwnersTreeInfos->StandardCellWidth * OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * CellWidthMultiplier + WeightThicknessBonus,
-			OwnersTreeInfos->StandardDrawLength / OwnersTreeInfos->ZAxisHeightOfDrawnMesh);
+			OwnersTreeInfos->StandardCellWidth * StandardDrawScale * CellWidthMultiplier + WeightThicknessBonus,
+			OwnersTreeInfos->StandardCellWidth * StandardDrawScale * CellWidthMultiplier + WeightThicknessBonus,
+			StandardDrawScale);
 
 		float PossibleLeaveGapMult = 1.0f;
 		if (DefOfThis && DefOfThis->bLEAVE_IsLeave)
@@ -266,12 +267,15 @@ void UTreeCellComponent::drawCellRecursively()
 			PossibleLeaveGapMult = OwnersTreeInfos->LeaveGapMultiplier;
 		}
 
+		float ParentTransformScaleZ = ParentAsTreeCell ? ParentAsTreeCell->DrawTransform.GetScale3D().Z : 0.0f; //if no root cell, no offset
+
 		const FVector Location =
 			ParentCellTransform.GetLocation()
-			+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector * PossibleLeaveGapMult);
+			+ ParentCellTransform.GetRotation().RotateVector(OwnersTreeInfos->StandardDrawDirection * OwnersTreeInfos->ZAxisHeightOfDrawnMesh * ParentTransformScaleZ * PossibleLeaveGapMult);
+		//	+ ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector * PossibleLeaveGapMult);
 
 		FRotator ThisRot = FRotator::ZeroRotator;
-		if (ParentAsTreeCell != nullptr && ParentAsTreeCell->AttachedCellChildren.Num()>2)
+		if (ParentAsTreeCell != nullptr && ParentAsTreeCell->AttachedCellChildren.Num() >= 2)
 		{
 			TArray<FVector> GrowVectorArray;
 			ParentAsTreeCell->GetRawHorizChilDrawVecs(GrowVectorArray);
@@ -335,12 +339,68 @@ void UTreeCellComponent::drawCellRecursively()
 			DrawTransform.GetScale3D().X, DrawTransform.GetScale3D().Y, DrawTransform.GetScale3D().Z,
 			DrawTransform.GetRotation().Rotator().Roll, DrawTransform.GetRotation().Rotator().Pitch, DrawTransform.GetRotation().Rotator().Yaw);
 
-	//	DrawnComponent->SetWorldTransform(DrawTransform);
-	//	DrawnComponent->SetCastShadow(false);
-	//	
+
+
+/////////////////////////////
+///////////Handle Growing on Ground
+/////////////////////////////
+		if (DefOfThis && DefOfThis->bAttachToGround)
+		{
+
+			if (ParentAsTreeCell && (ParentAsTreeCell->AlignNormalForChilds != FVector::ZeroVector))
+			{
+				//TODO is it right to use StandardDrawUpVector here over just Z+ Axis?
+				const FVector GrowDirection = DrawTransform.GetRotation().RotateVector(StandardDrawUpVector).GetSafeNormal();
+				   FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds); //TODO * standarddrawvector.length
+
+				const FRotator AlignCorrectedRotator =  UKismetMathLibrary::MakeRotFromZ(FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds));
+				//TODO does this work with yaw rotation as well?
+				DrawTransform.SetRotation(AlignCorrectedRotator.Quaternion());
+			}
+
+
+
+			//calculate if drawing direction needs to change because of obstacle
+			FHitResult Rslt = FHitResult();
+			FCollisionQueryParams Params = FCollisionQueryParams();
+			//Params.TraceTag = TraceTag; //comment in to show raytrace debug lines
+			Params.bTraceAsyncScene = false;
+			const FVector LineTraceEndWorld = DrawTransform.GetLocation() + DrawTransform.GetRotation().RotateVector(StandardDrawUpVector);
+			GetWorld()->LineTraceSingleByChannel(Rslt, Location, LineTraceEndWorld, ECollisionChannel::ECC_GameTraceChannel1, Params, FCollisionResponseParams());
+
+			if (Rslt.bBlockingHit)
+			{
+				AlignNormalForChilds = Rslt.ImpactNormal;
+
+				//TODO is this enough?
+				FVector NewScale = DrawTransform.GetScale3D();
+				NewScale.Z = (Location - Rslt.Location).Size() / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * 0.9;
+				DrawTransform.SetScale3D(NewScale);
+			}
+
+			else if (ParentAsTreeCell)
+			{
+				AlignNormalForChilds = ParentAsTreeCell->AlignNormalForChilds;
+			}
+
+			else
+			{
+				AlignNormalForChilds = FVector::ZeroVector;
+			}
+
+			//DrawTransform . Rot 
+			// use FVector::VectorPlaneProject
+		}
+
+
+
+/////////////////////////////
+///////////Collision Check
+/////////////////////////////
+
 		bool bActuallyAddInstance  = true;
 
-		if (AttachedCellChildren.Num() == 0 && !DefOfThis->bIgnoreCollisionCheck) //only check for cells without children whether they collide
+		if (AttachedCellChildren.Num() == 0 && DefOfThis && !DefOfThis->bIgnoreCollisionCheck ) //only check for cells without children whether they collide
 		{		
 			
 			TArray <FOverlapResult > HitArray = TArray<FOverlapResult>();
@@ -438,7 +498,10 @@ void UTreeCellComponent::drawCellRecursively()
 
 				if (!InstanceIdsToIgnore.Contains(Rslt.ItemIndex))
 				{
-					bActuallyAddInstance = false;
+						if (!DefOfThis->bAttachToGround || Rslt.Actor.Get() == GetOwner()) //only self-collide if attach to ground
+						{
+							bActuallyAddInstance = false;
+						}
 				}
 
 					
@@ -466,6 +529,7 @@ void UTreeCellComponent::drawCellRecursively()
 		{
 			//destroy this if we get a collision
 			//this->UnregisterComponent();
+
 			DestroyComponent();
 		}
 	}
@@ -509,6 +573,8 @@ void UTreeCellComponent::InitWithString(FString InString)
 
 bool UTreeCellComponent::CalcHorizDivChilVecs()
 {
+	//NOTE: All values in local space (i.e. only Z+ and not StandardDrawVector)
+
 	//TODO fix this, as this does not seem to do exactly what it should be doing
 	RawHorizChilDrawVecs.Empty();
 
@@ -546,7 +612,7 @@ bool UTreeCellComponent::CalcHorizDivChilVecs()
 	for (int32 r = 0; r < NumberOfRows; r++)
 	{
 		DefOfThis->HorChlCircleVarianceAngle;
-		const FVector RowRotator = FVector(0.0f, 0.0f, 1.0f).RotateAngleAxis(DefOfThis->HorChlCircleAngle - DefOfThis->HorChlCircleVarianceAngle *r, FVector(1.0f, 0.0f, 0.0f)); //one axis orthogonal to StandardDrawDirection
+		const FVector RowRotator = FVector(0.0f, 0.0f, 1.0f).RotateAngleAxis(DefOfThis->HorChlCircleAngle - DefOfThis->HorChlCircleVarianceAngle * r, FVector(1.0f, 0.0f, 0.0f)); //one axis orthogonal to StandardDrawDirection
 
 		for (int32 e = 0; e < ElementsPerRow; e++)
 		{

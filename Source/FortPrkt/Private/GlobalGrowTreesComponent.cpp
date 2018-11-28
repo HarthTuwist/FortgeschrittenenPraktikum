@@ -143,7 +143,7 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 			Params.bTraceAsyncScene = false;
 			const FVector LineTraceOriginWorld = LightTraceOriginPosition + GetOwner()->GetActorLocation();
 			const FVector LineTraceEndWorld = CurrentTraceEnd + GetOwner()->GetActorLocation();
-			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_GameTraceChannel1 , Params, FCollisionResponseParams());
+			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_WorldStatic , Params, FCollisionResponseParams());
 
 			if (Rslt.bBlockingHit == true)
 			{

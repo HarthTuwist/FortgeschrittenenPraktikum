@@ -58,6 +58,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		FTransform DrawTransform;
 
+	//if this is != Zero-Vector, this cell is aligned to something
+	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
+		FVector AlignNormalForChilds;
+
 	virtual bool shouldDivideHorizontally() override;
 
 	virtual void InitWithString(FString InString) override;

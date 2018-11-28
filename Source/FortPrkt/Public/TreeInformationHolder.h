@@ -95,13 +95,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		float WeightBurdenBonus;
 
-	//this map defines the multiple ways this cell could divide
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
-		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
-
 	//ignores collision check on cells with no children
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		bool bIgnoreCollisionCheck;
+
+	//if true this celltype will attach to ground
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CellTypeDefinition")
+		bool bAttachToGround;
 
 
 	/////
@@ -113,6 +113,12 @@ public:
 	//basic bool that marks if cell is leave
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		bool bLEAVE_IsLeave;
+
+
+
+	//this map defines the multiple ways this cell could divide
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
+		TMap<EStateTraitEnum, FCellDivideDefinition> DivideMap;
 
 	FCellTypeDefinition()
 	{
@@ -127,6 +133,8 @@ public:
 
 		WidthMultiplierX = 1.0f;
 
+
+		bAttachToGround = false;
 		//leave stuff
 
 		bLEAVE_IsLeave = false;
