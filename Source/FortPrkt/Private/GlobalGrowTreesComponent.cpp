@@ -187,7 +187,9 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 					else
 					{
-						UE_LOG(LogCell_MasterGrower, Log, TEXT("Lighttrace hit InstancedStaticMesh != 'LeavesMeshInstance', is this supposed to happen?"));
+						UE_LOG(LogCell_MasterGrower, Log, TEXT("Lighttrace hit InstancedStaticMesh != 'LeavesMeshInstance', is this supposed to happen? Actor: %s, Component: %s"),
+							*GetNameSafe(HitComponent->GetOwner()),
+							*GetNameSafe(HitComponent));
 					}
 				}
 					

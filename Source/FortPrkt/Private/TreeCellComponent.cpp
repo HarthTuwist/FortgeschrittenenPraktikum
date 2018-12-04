@@ -277,24 +277,59 @@ void UTreeCellComponent::drawCellRecursively()
 		FRotator ThisRot = FRotator::ZeroRotator;
 		if (ParentAsTreeCell != nullptr && ParentAsTreeCell->AttachedCellChildren.Num() >= 2)
 		{
-			TArray<FVector> GrowVectorArray;
-			ParentAsTreeCell->GetRawHorizChilDrawVecs(GrowVectorArray);
 			const int32 PosInParent = ParentAsTreeCell->AttachedCellChildren.Find(this);
-			if (GrowVectorArray.Num() > PosInParent)
+			FVector GrowVectorOfThis;
+
+			//handle being aligned to ground
+// 			if (DefOfThis && DefOfThis->bAttachToGround &&
+// 				(ParentAsTreeCell->AlignNormalForChilds != FVector::ZeroVector)
+// 				)
+ 			if (false) //disable this for now as this does not work
 			{
-				const FVector GrowVectorOfThis = GrowVectorArray[PosInParent];
-				ThisRot = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, GrowVectorOfThis); //TODO I think this is wrong and works by accident
+				const float AngleBetweenNeighbors = DefOfThis->HorChlCircleAngle * 2 / ParentAsTreeCell->AttachedCellChildren.Num();
+				const float FinalAngle = (-DefOfThis->HorChlCircleAngle) + AngleBetweenNeighbors * PosInParent;
+				GrowVectorOfThis = FVector(0.0f, 0.0f, 1.0f).RotateAngleAxis(FinalAngle , FVector(0.0f, 1.0f, 0.0f)); //Rotate Around Y, as in Local Space this is the normal of the impact
+
+				ThisRot = UKismetMathLibrary::MakeRotFromZY(GrowVectorOfThis, FVector(0.0f, 1.0f, 0.0f)); //make a rotation corresponding to the Vector
+
+				UE_LOG(LogCell, Log, TEXT("%s, drawing Vector in Local Space: %f, %f, %f, ResultRot: %f, %f, %f"),
+					*GetNameSafe(this),
+					GrowVectorOfThis.X, GrowVectorOfThis.Y, GrowVectorOfThis.Z,
+					ThisRot.Roll, ThisRot.Pitch, ThisRot.Yaw);
+
+			//	const FVector RelativeXAxis = FVector::CrossProduct(LineTraceDirectionVector, FVector(1.0f, 1.0f, 1.0f)).GetSafeNormal();
+
+
 			}
+
+			//handle not being aligned to ground
 			else
 			{
-				UE_LOG(LogCell, Error, TEXT("Drawing TreeCell, to few parent grow Vectors, Name: %s, StateString: %s, ParentGrowVecs.Length: %u, wanted position: %u"),
-					*GetNameSafe(this),
-					*StateString,
-					GrowVectorArray.Num(),
-					PosInParent);
+				//TODO why does this get copied if this is quasi-const?
+				TArray<FVector> GrowVectorArray;
+				ParentAsTreeCell->GetRawHorizChilDrawVecs(GrowVectorArray);
+
+
+
+				if (!(GrowVectorArray.Num() > PosInParent))
+				{
+					UE_LOG(LogCell, Error, TEXT("Drawing TreeCell, to few parent grow Vectors, Name: %s, StateString: %s, ParentGrowVecs.Length: %u, wanted position: %u"),
+						*GetNameSafe(this),
+						*StateString,
+						GrowVectorArray.Num(),
+						PosInParent);
+				}
+
+				else
+				{
+					GrowVectorOfThis = GrowVectorArray[PosInParent];
+					ThisRot = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, GrowVectorOfThis); //TODO I think this is wrong and works by accident
+				}
+
 			}
+
 			
-			//Rotation = FRotator(0.0f, 0.0f, 0.0f).Quaternion();
+
 		}
 		//else keep ZeroRotator(first cell in tree)
 		//const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
@@ -349,13 +384,30 @@ void UTreeCellComponent::drawCellRecursively()
 
 			if (ParentAsTreeCell && (ParentAsTreeCell->AlignNormalForChilds != FVector::ZeroVector))
 			{
-				//TODO is it right to use StandardDrawUpVector here over just Z+ Axis?
-				const FVector GrowDirection = DrawTransform.GetRotation().RotateVector(StandardDrawUpVector).GetSafeNormal();
-				   FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds); //TODO * standarddrawvector.length
+// 				//TODO is it right to use StandardDrawUpVector here over just Z+ Axis?
+// 				const FVector GrowDirection = DrawTransform.GetRotation().RotateVector(StandardDrawUpVector).GetSafeNormal();
+// 				   FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds); //TODO * standarddrawvector.length
+// 
+// 				const FRotator AlignCorrectedRotator =  UKismetMathLibrary::MakeRotFromZ(FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds));
+// 				//TODO does this work with yaw rotation as well?
+// 				// 
+// 				DrawTransform.SetRotation(AlignCorrectedRotator.Quaternion());
 
-				const FRotator AlignCorrectedRotator =  UKismetMathLibrary::MakeRotFromZ(FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds));
-				//TODO does this work with yaw rotation as well?
+				const FVector GrowDirection = DrawTransform.GetRotation().RotateVector(StandardDrawUpVector).GetSafeNormal();
+
+				const FRotator AlignCorrectedRotator = UKismetMathLibrary::MakeRotFromZ(FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds));
+
 				DrawTransform.SetRotation(AlignCorrectedRotator.Quaternion());
+				
+				
+				
+				//alternate: align only the parent vector
+
+// 				const FVector GrowDirection = ParentCellTransform.GetRotation().RotateVector(StandardDrawUpVector);
+// 				const FRotator AlignCorrectedRotator = UKismetMathLibrary::MakeRotFromZ(FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds));
+// 				DrawTransform.SetRotation(UKismetMathLibrary::ComposeRotators(ThisRot, AlignCorrectedRotator).Quaternion());
+
+
 			}
 
 
@@ -632,7 +684,7 @@ void UTreeCellComponent::GetRawHorizChilDrawVecs(TArray<FVector>& Vectors)
 {
 	if (RawHorizChilDrawVecs.Num() == 0)
 	{
-		CalcHorizDivChilVecs(); //TODO put actual value here
+		CalcHorizDivChilVecs();
 	}
 
 	Vectors = RawHorizChilDrawVecs;
