@@ -334,9 +334,20 @@ void UTreeCellComponent::drawCellRecursively()
 		//else keep ZeroRotator(first cell in tree)
 		//const FRotator EndRot = UKismetMathLibrary::ComposeRotators(ParentCellTransform.GetRotation().Rotator(), ThisRot);
 		// 
-		const float LerpValue = DefOfThis ? FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection) : 0.0f;
-		FRotator LerpTarget;
+		float LerpValue = 0.0f;
+		if (DefOfThis)
+		{
+			if ( //if we are not aligned to ground, set the LerpValue to the actual value out of DefOfThis
+				!(DefOfThis->bAttachToGround)
+				||
+				(ParentAsTreeCell && ParentAsTreeCell->AlignNormalForChilds == FVector::ZeroVector)
+				)
+			{
+				LerpValue = FMath::Abs(DefOfThis->CorrelationWithStandardDrawDirection);
+			}
+		}
 
+		FRotator LerpTarget;
 		if (DefOfThis != nullptr && DefOfThis->CorrelationWithStandardDrawDirection < 0.0f)
 		{
 			LerpTarget = UKismetMathLibrary::MakeRotFromZX(StandardDrawUpVector * (-1), (StandardDrawUpVector * (-1)).RotateAngleAxis(90.0f, FVector(0.0f, 1.0f, 0.0f)));
@@ -398,7 +409,7 @@ void UTreeCellComponent::drawCellRecursively()
 				const FRotator AlignCorrectedRotator = UKismetMathLibrary::MakeRotFromZ(FVector::VectorPlaneProject(GrowDirection, ParentAsTreeCell->AlignNormalForChilds));
 
 				DrawTransform.SetRotation(AlignCorrectedRotator.Quaternion());
-				
+					
 				
 				
 				//alternate: align only the parent vector
@@ -426,22 +437,57 @@ void UTreeCellComponent::drawCellRecursively()
 
 				//TODO is this enough?
 				FVector NewScale = DrawTransform.GetScale3D();
-				NewScale.Z = (Location - Rslt.Location).Size() / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * 0.9;
+				NewScale.Z = (Location - Rslt.Location).Size() / OwnersTreeInfos->ZAxisHeightOfDrawnMesh * 0.9; //TODO Magic Number
 				DrawTransform.SetScale3D(NewScale);
-			}
-
-			else if (ParentAsTreeCell)
-			{
-				AlignNormalForChilds = ParentAsTreeCell->AlignNormalForChilds;
 			}
 
 			else
 			{
-				AlignNormalForChilds = FVector::ZeroVector;
-			}
+				
+				if (ParentAsTreeCell == nullptr)
+				{
+					AlignNormalForChilds = FVector::ZeroVector;
+				}
 
-			//DrawTransform . Rot 
-			// use FVector::VectorPlaneProject
+				else
+				{
+					//perform orthogonal check to see whether we have still contact with the surface
+
+					FHitResult Rslt2 = FHitResult();
+					FCollisionQueryParams Params2 = FCollisionQueryParams();
+					const FName TraceTag("TrunkCollisionTag");
+					Params.TraceTag = TraceTag; //comment in to show raytrace debug lines
+					Params2.bTraceAsyncScene = false;
+					Params2.AddIgnoredActor(GetOwner());
+
+					const FVector TraceBegin2 = DrawTransform.GetLocation(); //TODO isn't this one trunk to late
+					//Trace down the align normal
+					const FVector LineTraceEndWorld2 = TraceBegin2 + (-1) * ParentAsTreeCell->AlignNormalForChilds * DrawTransform.GetScale3D().X * OwnersTreeInfos->ZAxisHeightOfDrawnMesh * 1.1f; //TODO Magic Number
+
+
+					GetWorld()->LineTraceSingleByChannel(Rslt2, TraceBegin2, LineTraceEndWorld2, ECollisionChannel::ECC_GameTraceChannel1, Params2, FCollisionResponseParams());
+
+					//UE_LOG(LogCell, Log, TEXT("StillAlignedTest, Name: %s, Begin: %f, %f, %f, End: %f, %f, %f"),
+					//	*GetNameSafe(this),
+					//	TraceBegin2.X, TraceBegin2.Y, TraceBegin2.Z,
+					//	LineTraceEndWorld2.X, LineTraceEndWorld2.Y, LineTraceEndWorld2.Z
+					//);
+
+					if (!Rslt2.bBlockingHit)
+					{
+						AlignNormalForChilds == FVector::ZeroVector;
+
+					//	UE_LOG(LogCell, Log, TEXT("AlignNormal set to Zero, Name: %s,"),
+					//		*GetNameSafe(this)
+					//	);
+					}
+
+					else
+					{
+						AlignNormalForChilds = ParentAsTreeCell->AlignNormalForChilds;
+					}
+				}
+			}
 		}
 
 
