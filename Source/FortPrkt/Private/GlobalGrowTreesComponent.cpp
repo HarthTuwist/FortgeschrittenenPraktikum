@@ -143,7 +143,9 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 			Params.bTraceAsyncScene = false;
 			const FVector LineTraceOriginWorld = LightTraceOriginPosition + GetOwner()->GetActorLocation();
 			const FVector LineTraceEndWorld = CurrentTraceEnd + GetOwner()->GetActorLocation();
-			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_WorldStatic , Params, FCollisionResponseParams());
+
+			//TODO this is actually raytracing ECC_Static rofl; if change consider UTreeInformationHolder::BeginPlay()
+			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_WorldStatic , Params, FCollisionResponseParams()); 
 
 			if (Rslt.bBlockingHit == true)
 			{
@@ -187,9 +189,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 					else
 					{
-						UE_LOG(LogCell_MasterGrower, Log, TEXT("Lighttrace hit InstancedStaticMesh != 'LeavesMeshInstance', is this supposed to happen? Actor: %s, Component: %s"),
-							*GetNameSafe(HitComponent->GetOwner()),
-							*GetNameSafe(HitComponent));
+						if (GetNameSafe(HitComponent) != TEXT("StaticMeshInstance"))
+						{
+							UE_LOG(LogCell_MasterGrower, Log, TEXT("Lighttrace hit InstancedStaticMesh != 'LeavesMeshInstance' and 'StaticMeshInstance', is this supposed to happen? Actor: %s, Component: %s"),
+								*GetNameSafe(HitComponent->GetOwner()),
+								*GetNameSafe(HitComponent));
+						}
 					}
 				}
 					

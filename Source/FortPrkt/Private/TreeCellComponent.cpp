@@ -55,11 +55,13 @@ void UTreeCellComponent::CopyPropertiesFromParent(UCellComponent * Parent)
 	if (ParentAsTreeCell == nullptr) //other cell, e.g. root, is the parent
 	{
 		WeightBurden = 0;
+		GrowingFreeAgain = 0;
 	}
 
 	else
 	{
 		WeightBurden = ParentAsTreeCell->WeightBurden;
+		GrowingFreeAgain = ParentAsTreeCell->GrowingFreeAgain;
 	}
 
 	//always set this properties to standard values
@@ -449,15 +451,15 @@ void UTreeCellComponent::drawCellRecursively()
 					AlignNormalForChilds = FVector::ZeroVector;
 				}
 
-				else
+				else if (ParentAsTreeCell->AlignNormalForChilds != FVector::ZeroVector) //only if parent says we should be attached
 				{
 					//perform orthogonal check to see whether we have still contact with the surface
 
 					FHitResult Rslt2 = FHitResult();
 					FCollisionQueryParams Params2 = FCollisionQueryParams();
 					const FName TraceTag("TrunkCollisionTag");
-					Params.TraceTag = TraceTag; //comment in to show raytrace debug lines
-					Params2.bTraceAsyncScene = false;
+					//Params.TraceTag = TraceTag; //comment in to show raytrace debug lines
+					//Params2.bTraceAsyncScene = false;
 					Params2.AddIgnoredActor(GetOwner());
 
 					const FVector TraceBegin2 = DrawTransform.GetLocation(); //TODO isn't this one trunk to late
@@ -480,6 +482,12 @@ void UTreeCellComponent::drawCellRecursively()
 					//	UE_LOG(LogCell, Log, TEXT("AlignNormal set to Zero, Name: %s,"),
 					//		*GetNameSafe(this)
 					//	);
+
+
+						if (AttachedCellChildren.Num() == 0)
+						{
+							GrowingFreeAgain = 1; //set this to 1 so cell division can depend on it if we have no childs
+						}
 					}
 
 					else
@@ -753,6 +761,11 @@ void UTreeCellComponent::SetCellStateTrait(EStateTraitEnum TraitEnum, int32 NewV
 	{
 		LightThisIteration = NewValue;
 	}
+
+	else if (TraitEnum == EStateTraitEnum::TRAIT_FREEAGAIN)
+	{
+		GrowingFreeAgain = NewValue;
+	}
 }
 
 int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
@@ -772,9 +785,14 @@ int32 UTreeCellComponent::GetCellStateTrait(EStateTraitEnum TraitEnum)
 		return LightThisIteration;
 	}
 
+	else if (TraitEnum == EStateTraitEnum::TRAIT_FREEAGAIN)
+	{
+		return GrowingFreeAgain;
+	}
+
 	else
 	{
-		return -21;
+		return -21; //return a dummy fake value
 	}
 }
 

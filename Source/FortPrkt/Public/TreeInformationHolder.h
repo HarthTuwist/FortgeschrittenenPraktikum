@@ -23,6 +23,7 @@ enum class EStateTraitEnum : uint8
 	TRAIT_LIFETIME = 0 UMETA(DisplayName = "TimeSinceCreation"),
 	TRAIT_WEIGHTBURDEN = 1 UMETA(DisplayName = "WeightBurden"),
 	TRAIT_LIGHT = 2 UMETA(DisplayName = "Light"),
+	TRAIT_FREEAGAIN = 3 UMETA(DisplayName = "NoMoreGroundAttachedTip"),
 
 	FIRST_INVALID UMETA(Hidden)
 };

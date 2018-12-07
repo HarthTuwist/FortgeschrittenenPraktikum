@@ -195,7 +195,7 @@ void UCellComponent::divideCellVertically(TArray<FString>* ChildrenArray /*= nul
 					*GetNameSafe(LastCell));
 				LastCell->AddNewCellChild(NewCell);
 			}
-
+				
 			LastCell = NewCell;
 			OutArray.Add(NewCell);
 		}
