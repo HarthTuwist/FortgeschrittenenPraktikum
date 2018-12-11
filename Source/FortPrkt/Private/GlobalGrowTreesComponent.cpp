@@ -51,11 +51,38 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 	{
 		if (root != nullptr)
 		{
+			TArray<UActorComponent*> TreeInfosArray = root->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+			UTreeInformationHolder* TreeInfoOfRoot = TreeInfosArray.Num() > 0 ? Cast<UTreeInformationHolder>(TreeInfosArray[0]) : nullptr;
+
+
 			const TArray<UActorComponent*> CellsOfRoot = root->GetOwner()->GetComponentsByClass(UTreeCellComponent::StaticClass());
 
-			for (UActorComponent* cell : CellsOfRoot)
+			root->bCurrentlyStatic = false;
+			if (TreeInfoOfRoot && TreeInfoOfRoot->MaxCellsInTreeBase > 0)
 			{
-				(Cast<UTreeCellComponent>(cell))->divideCell();
+				const float MaxNumberOfCellsThisTick = FMath::Min(
+					FMath::Pow(TreeInfoOfRoot->MaxCellsInTreeRuntimeValue, TreeInfoOfRoot->AllowedCellsExponent),
+					TreeInfoOfRoot->MaxCellsHardUpperLimit
+				);
+				//MaxNumberOfCellsThisTick = FMath::Pow(TreeInfoOfRoot->MaxCellsInTreeRuntimeValue, TreeInfoOfRoot->AllowedCellsExponent);
+
+				if (MaxNumberOfCellsThisTick < CellsOfRoot.Num())
+				{
+					root->bCurrentlyStatic = true;
+				}
+			}
+
+			if (root->bCurrentlyStatic == false)
+			{
+				for (UActorComponent* cell : CellsOfRoot)
+				{
+					(Cast<UTreeCellComponent>(cell))->divideCell();
+				}
+			}
+
+			if (TreeInfoOfRoot != nullptr)
+			{
+				TreeInfoOfRoot->MaxCellsInTreeRuntimeValue = TreeInfoOfRoot->MaxCellsInTreeBase;
 			}
 		}
 	}
@@ -63,7 +90,7 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 	//draw all cells
 	for (UDesignatedRootCellComponent* root : RootsOfCellsToGrow)
 	{
-		if (root != nullptr)
+		if (root != nullptr && root->bCurrentlyStatic == false)
 		{
 			root->drawCellRecursively();
 		}
@@ -75,6 +102,8 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 
 
 	RayTraceToLeaves();
+
+	HandleWaterOverlaps();
 
 }
 
@@ -172,6 +201,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 							{
 								HitTreeCellComponent->LightThisIteration++;
 
+								if (HitTreeInfos->MaxCellsInTreeBase > 0)
+								{
+									HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerLightHitBonus;
+								}
+
+
 								if (HitTreeInfos->bShowLightRaycastHitMarkers)
 								{
 									DrawDebugPoint(GetWorld(), Rslt.ImpactPoint, 10, FColor(220, 100, 30), true, 3.0f);
@@ -230,3 +265,49 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 }
 
+void UGlobalGrowTreesComponent::HandleWaterOverlaps()
+{
+	for (UWaterCheckForOverlapsComponent* Comp: WaterComponentsToCheck)
+	{
+		TArray<FOverlapResult> Results = TArray<FOverlapResult>();
+		Comp->CheckForOverlapingMeshInstances(Results);
+
+		for (FOverlapResult r : Results)
+		{
+			UE_LOG(LogCell_MasterGrower, VeryVerbose, TEXT("Water: Check for %s, hit Component: %s and index: %u"),
+				*GetNameSafe(Comp),
+				*GetNameSafe(r.Component.Get()),
+				r.ItemIndex
+			);
+
+			UInstancedStaticMeshComponent* HitComponent = Cast<UInstancedStaticMeshComponent>(r.Component.Get());
+
+			if (HitComponent != nullptr)
+			{
+				//TODO implement system so we can hit another cell than trees? Identify with name?
+				if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance") || GetNameSafe(HitComponent) == TEXT("StaticMeshInstance"))
+				{
+					TArray<UActorComponent*> CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+
+					if (CompArray.Num() > 0)
+					{
+						UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
+
+						if (HitTreeInfos->MaxCellsInTreeBase > 0)
+						{
+							HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerWaterHitBonus;
+						}
+					}
+				}
+
+				else
+				{
+					UE_LOG(LogCell_MasterGrower, Log, TEXT("Water collision hit InstancedStaticMesh != 'LeavesMeshInstance' and 'StaticMeshInstance', is this supposed to happen? Actor: %s, Component: %s"),
+						*GetNameSafe(HitComponent->GetOwner()),
+						*GetNameSafe(HitComponent));
+				}
+
+			}
+		}
+	}
+}

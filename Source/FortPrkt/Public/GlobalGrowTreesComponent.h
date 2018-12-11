@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "DesignatedRootCellComponent.h"
 #include "TreeCellComponent.h"
+#include "WaterCheckForOverlapsComponent.h"
 #include "GlobalGrowTreesComponent.generated.h"
 
 
@@ -28,6 +29,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
 		TArray<UDesignatedRootCellComponent*> RootsOfCellsToGrow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		TArray<UWaterCheckForOverlapsComponent*> WaterComponentsToCheck;
 
 	UFUNCTION(BlueprintCallable, Category = "CellGrow")
 		void IterateOverRoots();
@@ -63,5 +67,7 @@ protected:
 	//calculates all CellStateTraits
 	void CalculateCellStateTraits();
 
+	//handles water overlapped static mesh instances
+	void HandleWaterOverlaps();
 	
 };

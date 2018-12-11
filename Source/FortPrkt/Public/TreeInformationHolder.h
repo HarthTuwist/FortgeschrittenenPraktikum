@@ -258,7 +258,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		bool bShowGrowCollisionMarkers;
 
-	//When Leaves check for collision, width will be multiplied by this
+	//when Leaves check for collision, width will be multiplied by this
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		float LeavesCollisionCheckMultiplier;
+
+	//runtime calculated value: makes the tree static if value is bigger than number of cells and MaxcellsInTreeBase > 0
+	UPROPERTY(BlueprintReadWrite, Category = "Genome")
+		int32 MaxCellsInTreeRuntimeValue; //TODO does this belong in TreeInformationHolder ??
+
+	//If > 0 : activates checking for max number of cells, with this as base addend
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		int32 MaxCellsInTreeBase;
+
+	//how many additional cells the tree can have when 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		int32 AllowedCellsPerLightHitBonus;
+
+	//how many additional cells the tree can have when 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		int32 AllowedCellsPerWaterHitBonus;
+
+	//MaxCellsInTreeRuntimeValue is powered by this before comparison
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float AllowedCellsExponent;
+
+	//Stop growing under all circumstances if this is smaller than the number of cells
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float MaxCellsHardUpperLimit;
 };

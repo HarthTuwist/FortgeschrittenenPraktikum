@@ -32,6 +32,10 @@ UTreeInformationHolder::UTreeInformationHolder()
 
 	LeavesCollisionCheckMultiplier = 1.0f;
 
+	MaxCellsInTreeBase = -5;
+	AllowedCellsExponent = 1.0f;
+	MaxCellsHardUpperLimit = 10000.0f;
+
 	//Mesh Setup stuff
 	TrunksInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("StaticMeshInstance"));
 	LeavesInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LeavesMeshInstance"));
@@ -57,6 +61,8 @@ void UTreeInformationHolder::BeginPlay()
 		TrunksInstanceComponent->SetStaticMesh(StaticMeshForVisuals);
 
 		TrunksInstanceComponent->bMultiBodyOverlap = true;
+		TrunksInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
+		
 		TrunksInstanceComponent->SetCastShadow(false);
 	}
 
@@ -66,8 +72,12 @@ void UTreeInformationHolder::BeginPlay()
 
 		LeavesInstanceComponent->bMultiBodyOverlap = true;
 		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
+		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
+		
 		LeavesInstanceComponent->SetCastShadow(false);
 	}
+
+	MaxCellsInTreeRuntimeValue = MaxCellsInTreeBase;
 }
 
 void UTreeInformationHolder::MutateOrganism()
