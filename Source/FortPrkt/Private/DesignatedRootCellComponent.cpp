@@ -45,7 +45,11 @@ void UDesignatedRootCellComponent::drawCellRecursively()
 
 	for (UCellComponent* c : AttachedCellChildren)
 	{
-		c->drawCellRecursively();
+		if (c != nullptr)
+		{
+			c->drawCellRecursively();
+		}
+		
 	}
 }
 

@@ -129,7 +129,13 @@ void UGlobalGrowTreesComponent::CalculateCellStateTraits()
 			//calculate burden
 			for (UCellComponent* rootChild : root->AttachedCellChildren)
 			{
-				Cast<UTreeCellComponent>(rootChild)->CalcBurdenRecursively();
+				UTreeCellComponent* child = Cast<UTreeCellComponent>(rootChild);
+					
+					if (child != nullptr)
+					{
+						child->CalcBurdenRecursively();
+					}
+					
 			}
 		}
 
@@ -214,9 +220,11 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 							}
 							else
 							{
-								UE_LOG(LogCell_MasterGrower, Error, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s"),
+								UE_LOG(LogCell_MasterGrower, Error, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s, LeavesArray.Num = %u, hit Name: %s"),
 									Rslt.Item,
-									*GetNameSafe(Rslt.Actor.Get()));
+									*GetNameSafe(Rslt.Actor.Get()),
+									HitTreeInfos->LeavesArrayThisIteration.Num(),
+									*GetNameSafe(HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get()));
 							}
 						}
 

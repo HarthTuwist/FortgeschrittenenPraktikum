@@ -633,10 +633,26 @@ void UTreeCellComponent::drawCellRecursively()
 
 		else
 		{
+			//add zero-transforms, i.e. dummy values if we shouldn't acutally add anything
+			const FTransform NonTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::ZeroVector);
+			if (bIsLeave)
+			{
+				AddedInstanceID = OwnersTreeInfos->LeavesInstanceComponent->AddInstance(NonTransform);
+				AddedPointerID = OwnersTreeInfos->LeavesArrayThisIteration.Add(this);
+			}
+
+			else
+			{
+				AddedInstanceID = OwnersTreeInfos->TrunksInstanceComponent->AddInstance(NonTransform);
+				AddedPointerID = OwnersTreeInfos->TrunkArrayThisIteration.Add(this);
+			}
+
+			InstancedMeshIdThisIteration = AddedInstanceID;
+
 			//destroy this if we get a collision
-			//this->UnregisterComponent();
 
 			DestroyComponent();
+
 		}
 	}
 
@@ -802,7 +818,12 @@ int32 UTreeCellComponent::CalcBurdenRecursively()
 
 	for (UCellComponent* child : AttachedCellChildren)
 	{
-		outValue += Cast<UTreeCellComponent>(child)->CalcBurdenRecursively();
+		UTreeCellComponent* childAsTreeCell = Cast<UTreeCellComponent>(child);
+
+		if (childAsTreeCell != nullptr)
+		{
+			outValue += childAsTreeCell->CalcBurdenRecursively();
+		}
 		outValue += 1; //add 1 as the cell has a weight, too
 	}
 	//if no children weight is 0

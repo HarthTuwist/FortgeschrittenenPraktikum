@@ -256,7 +256,11 @@ void UCellComponent::drawCellRecursively()
 	//call the children
 	for (UCellComponent* c : AttachedCellChildren)
 	{
-		c->drawCellRecursively();
+		if (c != nullptr)
+		{
+			c->drawCellRecursively();
+		}
+		
 	}
 }
 
