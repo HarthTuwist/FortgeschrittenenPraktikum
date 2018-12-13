@@ -155,6 +155,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void SetupValues();
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Genome")
 		float StandardCellWidth;
@@ -225,6 +227,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		TMap<FString, FCellTypeDefinition> CellDefMap;
 
+
+	///////////////////Mutation functions
+
 	virtual void MutateOrganism() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Genome")
@@ -235,6 +240,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Genome")
 		virtual void BlindlyRandomCellDivides();
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		virtual void InitAndRandomPredefinedCells();
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		virtual void InitAndRandomTreeProperties();
+
 
 	//Component that stores static mesh instances for the trunks
 	UPROPERTY(BlueprintReadOnly, Category = "Genome")
@@ -263,7 +275,7 @@ public:
 		float LeavesCollisionCheckMultiplier;
 
 	//runtime calculated value: makes the tree static if value is bigger than number of cells and MaxcellsInTreeBase > 0
-	UPROPERTY(BlueprintReadWrite, Category = "Genome")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Genome")
 		int32 MaxCellsInTreeRuntimeValue; //TODO does this belong in TreeInformationHolder ??
 
 	//If > 0 : activates checking for max number of cells, with this as base addend

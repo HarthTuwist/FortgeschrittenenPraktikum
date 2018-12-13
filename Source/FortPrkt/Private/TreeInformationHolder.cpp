@@ -2,6 +2,8 @@
 
 #include "TreeInformationHolder.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogCell, Log, All);
+
 UTreeInformationHolder::UTreeInformationHolder()
 {
 
@@ -15,7 +17,12 @@ UTreeInformationHolder::UTreeInformationHolder()
 	SplineMeshForwardAxis = ESplineMeshAxis::Z; //use upward axis to draw
 	SplineMeshUpDir = FVector(1.0f, 0.0f, 0.0f); //not z, as we want to draw towards + z and splines can't do that for UE bugs or deeper reasons unbeknownst
 	
-	RootString = TEXT("A");
+
+
+	RootString = TEXT("0");
+
+
+
 	DivideHorizMarker = TEXT("H");
 	GrowLeftMarker = TEXT("L");
 	GrowRightMarker = TEXT("R");
@@ -46,11 +53,16 @@ void UTreeInformationHolder::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetupValues();
+}
+
+void UTreeInformationHolder::SetupValues()
+{
 	TArray<FString> GenomeKeys;
 	GenomeMap.GenerateKeyArray(GenomeKeys);
 	for (FString F : GenomeKeys)
 	{
-		if(!GenomeMap.Contains(F))
+		if (!GenomeMap.Contains(F))
 		{
 			CellDefMap.Add(F); //add default constructed Definitions
 		}
@@ -62,7 +74,7 @@ void UTreeInformationHolder::BeginPlay()
 
 		TrunksInstanceComponent->bMultiBodyOverlap = true;
 		TrunksInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
-		
+
 		TrunksInstanceComponent->SetCastShadow(false);
 	}
 
@@ -73,7 +85,7 @@ void UTreeInformationHolder::BeginPlay()
 		LeavesInstanceComponent->bMultiBodyOverlap = true;
 		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
-		
+
 		LeavesInstanceComponent->SetCastShadow(false);
 	}
 
@@ -82,7 +94,7 @@ void UTreeInformationHolder::BeginPlay()
 
 void UTreeInformationHolder::MutateOrganism()
 {
-	BlindlyRandomCellDivides();
+	/* BlindlyRandomCellDivides();
 
 	TArray<FString> GenomeKeys;
 
@@ -91,6 +103,13 @@ void UTreeInformationHolder::MutateOrganism()
 	{
 		MutateCellDefProperties(F);
 	}
+	}*/
+
+	CellDefMap.Empty();
+
+	InitAndRandomTreeProperties();
+
+	InitAndRandomPredefinedCells();
 }
 
 void UTreeInformationHolder::MutateCellDefProperties(FString CellId)
@@ -148,4 +167,308 @@ void UTreeInformationHolder::BlindlyRandomCellDivides()
 
 		CellDefMap.Add(F, TypeDef);
 	}
+}
+
+void UTreeInformationHolder::InitAndRandomPredefinedCells()
+{
+	FCellTypeDefinition CurrentType; 
+	FCellDivideDefinition CurrentTimeDiv; 
+
+/////////////0
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 1;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("Static"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("Start"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("0"), CurrentType);
+
+/////////////Static
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = 1.0f;
+
+	CellDefMap.Add(TEXT("Static"), CurrentType);
+
+/////////////Start
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 1;
+	CurrentTimeDiv.bDividesHorizontally = true;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("StartUp"));
+	
+	const int32 NumberOfRoots = FMath::RandRange(2, 7);
+	for (int32 i = 0; i < NumberOfRoots; i++)
+	{
+		CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_K"));
+	}
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("Start"), CurrentType);
+
+/////////////StartUp
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = 1.0f;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 1;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("StaticUp"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("K"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("StartUp"), CurrentType);
+
+/////////////StaticUp
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = 1.0f;
+
+	//divide properties
+	//..
+	CellDefMap.Add(TEXT("StaticUp"), CurrentType);
+
+/////////////K
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = 1.0f;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 1;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("H"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("K"), CurrentType);
+
+
+	const float CorrelationOfF = FMath::RandRange(-0.05f, 0.2f);
+/////////////F
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = CorrelationOfF;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 3;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F2"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F2"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("F"), CurrentType);
+
+/////////////F2
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = CorrelationOfF;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 8;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F3"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F3"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F3"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("F2"), CurrentType);
+
+
+/////////////F3
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = CorrelationOfF;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 13;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F3"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F3"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("F3"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("F3"), CurrentType);
+
+/////////////H
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.bLEAVE_IsLeave = true;
+	if (FMath::RandRange(0, 10) > 3)
+	{
+		CurrentType.bIgnoreCollisionCheck = true;
+	}
+	const float HNormalizationDivisor = StandardCellWidth * StandardDrawLength;
+	CurrentType.WidthMultiplierX = FMath::RandRange(10.0f, 100.0f) / HNormalizationDivisor; 
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 15;
+	CurrentTimeDiv.bDividesHorizontally = true;
+
+	const int32 NumberOfDarkLeafChildren = FMath::RandRange(2, 4);
+	for (int32 i = 0; i < NumberOfDarkLeafChildren; i++)
+	{
+		CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("K"));
+	}
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+
+	//light divide
+	FCellDivideDefinition HLightDivide = FCellDivideDefinition();
+	HLightDivide.bDividesHorizontally = true;
+	HLightDivide.DivideThreshold = 4;
+	const int32 NumberOfLightLeafChildren = FMath::RandRange(3, 8);
+	for (int32 i = 0; i < NumberOfLightLeafChildren; i++)
+	{
+		HLightDivide.ChildrenStateStrings.Add(TEXT("K"));
+	}
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIGHT, HLightDivide);
+
+	CellDefMap.Add(TEXT("H"), CurrentType);
+
+/////////////Down
+	const float DownCorrelation = FMath::RandRange(-0.8f, -0.3f);
+	const float DownHorCircleAngle = FMath::RandRange(30.0f, 60.0f);
+
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = DownCorrelation;
+	CurrentType.HorChlCircleAngle = DownHorCircleAngle;
+	CurrentType.bAttachToGround = true;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 6;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_2"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_2"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("Down"), CurrentType);
+
+/////////////D_K
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = DownCorrelation;
+	CurrentType.HorChlCircleAngle = DownHorCircleAngle;
+	CurrentType.bAttachToGround = true;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 2;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("Down"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_H"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("D_K"), CurrentType);
+
+/////////////D_H
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = DownCorrelation;
+	CurrentType.HorChlCircleAngle = DownHorCircleAngle;
+	CurrentType.bAttachToGround = true;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 3;
+	CurrentTimeDiv.bDividesHorizontally = true;
+	const int32 NumberOfDownChilds = FMath::RandRange(2, 5);
+	for (int32 i = 0; i < NumberOfDownChilds; i++)
+	{
+		CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_K"));
+	}
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("D_H"), CurrentType);
+
+/////////////D_2
+
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = DownCorrelation;
+	CurrentType.HorChlCircleAngle = DownHorCircleAngle;
+	CurrentType.bAttachToGround = true;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 7;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_3"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_3"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("D_2"), CurrentType);
+
+/////////////D_3
+
+	CurrentType = FCellTypeDefinition();
+	CurrentTimeDiv = FCellDivideDefinition();
+
+	//Cell properties
+	CurrentType.CorrelationWithStandardDrawDirection = DownCorrelation;
+	CurrentType.HorChlCircleAngle = DownHorCircleAngle;
+	CurrentType.bAttachToGround = true;
+
+	//divide properties
+	CurrentTimeDiv.DivideThreshold = 12;
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_3"));
+	CurrentTimeDiv.ChildrenStateStrings.Add(TEXT("D_3"));
+
+
+	CurrentType.DivideMap.Add(EStateTraitEnum::TRAIT_LIFETIME, CurrentTimeDiv);
+	CellDefMap.Add(TEXT("D_3"), CurrentType);
+}
+
+void UTreeInformationHolder::InitAndRandomTreeProperties()
+{
+	StandardCellWidth = FMath::Clamp(0.2f + FMath::RandRange(-0.15f, 0.6f), 0.0f, 1.0f);
+	StandardDrawLength = 15.0f + FMath::RandRange(-12.0f, 15.0f);
+
+	//LeavesCollisionCheckMultiplier = FMath::RandRange(0.1f, 1.0f);
+	LeavesCollisionCheckMultiplier = FMath::RandRange(0.1f, 0.5f);
+
+	MaxCellsInTreeBase = 1500.0f + FMath::RandRange(-500.0f, 500.0f);
+	AllowedCellsPerLightHitBonus = 60.0f + FMath::RandRange(-30.0f, 30.0f);
+	AllowedCellsPerWaterHitBonus = 100.0f + FMath::RandRange(-50.0f, 50.0f);
+	AllowedCellsExponent = FMath::RandRange(0.5f, 1.0f);
+	MaxCellsHardUpperLimit = 10000.0f;
+
+	SetupValues();
 }

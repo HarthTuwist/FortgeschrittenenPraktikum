@@ -56,7 +56,7 @@ public:
 //////Genome & String Stuff
 
 	//this string represents the current state of the cell
-	UPROPERTY(BlueprintReadWrite, Category = "Cell|Genome")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cell|Genome")
 		FString StateString;
 
 	//returns the array of substrings that are used in a division to transform this cell into its children
