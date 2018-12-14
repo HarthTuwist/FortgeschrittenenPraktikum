@@ -30,6 +30,9 @@ protected:
 public:
 		virtual void divideCell();
 
+	UPROPERTY()
+		UTreeInformationHolder* OwnersTreeInfos;
+
 	//Draw Stuff
 	TArray<FString> GetDivideSubstrings(FString InString) override;
 
@@ -111,7 +114,4 @@ private:
 	//Empty if not calculated yet. Might contain more entries then there are children
 	UPROPERTY()
 		TArray<FVector> RawHorizChilDrawVecs;
-
-	UPROPERTY()
-		UTreeInformationHolder* OwnersTreeInfos;
 };

@@ -16,6 +16,7 @@ DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:LineTrace"), STAT_FortPrktTra
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:HitInstMesh"), STAT_FortPrktTrace_HitInstMesh, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InstIsLeave"), STAT_FortPrktTrace_TextLeaves, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InstIsNoLeave"), STAT_FortPrktTrace_TextNoLeaves, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:GetCompArray"), STAT_FortPrktTrace_GetCompArray, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:GotComponent"), STAT_FortPrktTrace_GotComponent, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:CantFindComponent"), STAT_FortPrktTrace_CantFindComponent, STATGROUP_FortPrkt);
 
@@ -23,6 +24,7 @@ DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps"), STAT_FortPrktWaterOverlaps,
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:ActualCheck"), STAT_FortPrktWaterOverlaps_ActualCheck, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:HitInstMesh"), STAT_FortPrktWaterOverlaps_HitInstMesh, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:InstIsCell"), STAT_FortPrktWaterOverlaps_TextCell, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:GetCompArray"), STAT_FortPrktWaterOverlaps_GetCompArray, STATGROUP_FortPrkt);
 
 
 // Sets default values for this component's properties
@@ -242,7 +244,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 					{
 						SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_TextLeaves);
 
-						TArray<UActorComponent*> CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+						TArray<UActorComponent*> CompArray = TArray<UActorComponent*>();
+
+						{
+							SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_GetCompArray);
+							CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+						}
 
 						if (CompArray.Num() > 0)
 						{
@@ -353,8 +360,13 @@ void UGlobalGrowTreesComponent::HandleWaterOverlaps()
 				{
 					SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_TextCell);
 
-					TArray<UActorComponent*> CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+					TArray<UActorComponent*> CompArray = TArray<UActorComponent*>();
+					{
+						SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_GetCompArray);
 
+						CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+
+					}
 					if (CompArray.Num() > 0)
 					{
 						UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
