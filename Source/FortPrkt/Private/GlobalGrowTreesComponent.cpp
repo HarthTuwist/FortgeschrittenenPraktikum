@@ -6,6 +6,25 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogCell_MasterGrower, Log, All);
 
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ DivideCells"), STAT_FortPrktDivideCells, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ DrawCells"), STAT_FortPrktDrawCells, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ CalcTraits"), STAT_FortPrktCalcTraits, STATGROUP_FortPrkt);
+
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves"), STAT_FortPrktRayTraceLeaves, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InLoop"), STAT_FortPrktTrace_InLoop, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:LineTrace"), STAT_FortPrktTrace_LineTrace, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:HitInstMesh"), STAT_FortPrktTrace_HitInstMesh, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InstIsLeave"), STAT_FortPrktTrace_TextLeaves, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InstIsNoLeave"), STAT_FortPrktTrace_TextNoLeaves, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:GotComponent"), STAT_FortPrktTrace_GotComponent, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:CantFindComponent"), STAT_FortPrktTrace_CantFindComponent, STATGROUP_FortPrkt);
+
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps"), STAT_FortPrktWaterOverlaps, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:ActualCheck"), STAT_FortPrktWaterOverlaps_ActualCheck, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:HitInstMesh"), STAT_FortPrktWaterOverlaps_HitInstMesh, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:InstIsCell"), STAT_FortPrktWaterOverlaps_TextCell, STATGROUP_FortPrkt);
+
+
 // Sets default values for this component's properties
 UGlobalGrowTreesComponent::UGlobalGrowTreesComponent()
 {
@@ -51,6 +70,8 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 	{
 		if (root != nullptr)
 		{
+			SCOPE_CYCLE_COUNTER(STAT_FortPrktDivideCells);
+
 			TArray<UActorComponent*> TreeInfosArray = root->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
 			UTreeInformationHolder* TreeInfoOfRoot = TreeInfosArray.Num() > 0 ? Cast<UTreeInformationHolder>(TreeInfosArray[0]) : nullptr;
 
@@ -60,6 +81,9 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 			root->bCurrentlyStatic = false;
 			if (TreeInfoOfRoot && TreeInfoOfRoot->MaxCellsInTreeBase > 0)
 			{
+				TreeInfoOfRoot->DebugCurrentNrOfCells = CellsOfRoot.Num(); //TODO outcomment for non-debugging
+				// purposes
+
 				const float MaxNumberOfCellsThisTick = FMath::Min(
 					FMath::Pow(TreeInfoOfRoot->MaxCellsInTreeRuntimeValue, TreeInfoOfRoot->AllowedCellsExponent),
 					TreeInfoOfRoot->MaxCellsHardUpperLimit
@@ -90,6 +114,8 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 	//draw all cells
 	for (UDesignatedRootCellComponent* root : RootsOfCellsToGrow)
 	{
+		SCOPE_CYCLE_COUNTER(STAT_FortPrktDrawCells);
+
 		if (root != nullptr && root->bCurrentlyStatic == false)
 		{
 			root->drawCellRecursively();
@@ -98,12 +124,24 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 
 	//calculate CellTraits for all cells
 	
-	CalculateCellStateTraits();
+	{
+		SCOPE_CYCLE_COUNTER(STAT_FortPrktCalcTraits);
 
+		CalculateCellStateTraits();
 
-	RayTraceToLeaves();
+	}
 
-	HandleWaterOverlaps();
+	{
+		SCOPE_CYCLE_COUNTER(STAT_FortPrktRayTraceLeaves);
+
+		RayTraceToLeaves();
+	}
+
+	{
+		SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps);
+
+		HandleWaterOverlaps();
+	}
 
 }
 
@@ -167,6 +205,8 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 	{
 		for (int32 y = 0; y < RayTraceIterationsY; y++)
 		{
+			SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_InLoop);
+
 			const FVector RelativeXAxis = FVector::CrossProduct(LineTraceDirectionVector, FVector(1.0f, 1.0f, 1.0f)).GetSafeNormal();// RotFromZ.RotateVector(FVector(1.0f, 0.0f, 0.0f));
 			//const FVector RelativeYAxis = RotFromZ.RotateVector(FVector(0.0f, 1.0f, 0.0f));
 
@@ -180,8 +220,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 			const FVector LineTraceEndWorld = CurrentTraceEnd + GetOwner()->GetActorLocation();
 
 			//TODO this is actually raytracing ECC_Static rofl; if change consider UTreeInformationHolder::BeginPlay()
-			World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_WorldStatic , Params, FCollisionResponseParams()); 
+			
+			{
+				SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_LineTrace);
+				World->LineTraceSingleByChannel(Rslt, LineTraceOriginWorld, LineTraceEndWorld, ECollisionChannel::ECC_WorldStatic, Params, FCollisionResponseParams());
 
+			}
 			if (Rslt.bBlockingHit == true)
 			{
 				//UE_LOG(LogCell_MasterGrower, Log, TEXT("Light LineTrace Hit Something: %s, Number: %u"),
@@ -192,9 +236,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 				if (HitComponent != nullptr)
 				{
+					SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_HitInstMesh);
 					//TODO implement system so we can hit another cell than trees? Identify with name?
 					if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance"))
 					{
+						SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_TextLeaves);
+
 						TArray<UActorComponent*> CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
 
 						if (CompArray.Num() > 0)
@@ -205,6 +252,7 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 
 							if (HitTreeCellComponent)
 							{
+								SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_GotComponent);
 								HitTreeCellComponent->LightThisIteration++;
 
 								if (HitTreeInfos->MaxCellsInTreeBase > 0)
@@ -220,7 +268,9 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 							}
 							else
 							{
-								UE_LOG(LogCell_MasterGrower, Error, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s, LeavesArray.Num = %u, hit Name: %s"),
+								SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_CantFindComponent);
+								//TODO actually fix this instead of declaring it just Verbose
+								UE_LOG(LogCell_MasterGrower, Verbose, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s, LeavesArray.Num = %u, hit Name: %s"),
 									Rslt.Item,
 									*GetNameSafe(Rslt.Actor.Get()),
 									HitTreeInfos->LeavesArrayThisIteration.Num(),
@@ -278,7 +328,11 @@ void UGlobalGrowTreesComponent::HandleWaterOverlaps()
 	for (UWaterCheckForOverlapsComponent* Comp: WaterComponentsToCheck)
 	{
 		TArray<FOverlapResult> Results = TArray<FOverlapResult>();
-		Comp->CheckForOverlapingMeshInstances(Results);
+
+		{
+			SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_ActualCheck);
+			Comp->CheckForOverlapingMeshInstances(Results);
+		}
 
 		for (FOverlapResult r : Results)
 		{
@@ -292,9 +346,13 @@ void UGlobalGrowTreesComponent::HandleWaterOverlaps()
 
 			if (HitComponent != nullptr)
 			{
+				SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_HitInstMesh);
+
 				//TODO implement system so we can hit another cell than trees? Identify with name?
 				if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance") || GetNameSafe(HitComponent) == TEXT("StaticMeshInstance"))
 				{
+					SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_TextCell);
+
 					TArray<UActorComponent*> CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
 
 					if (CompArray.Num() > 0)

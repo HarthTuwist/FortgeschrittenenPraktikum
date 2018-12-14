@@ -10,6 +10,10 @@
 #include "GlobalGrowTreesComponent.generated.h"
 
 
+//For UE4 Profiler ~ Stat Group
+DECLARE_STATS_GROUP(TEXT("FortPrkt"), STATGROUP_FortPrkt, STATCAT_Advanced);
+
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FORTPRKT_API UGlobalGrowTreesComponent : public UActorComponent
 {

@@ -297,4 +297,11 @@ public:
 	//Stop growing under all circumstances if this is smaller than the number of cells
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		float MaxCellsHardUpperLimit;
+
+	//Debug value to see how many cells in tree
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Genome")
+		int32 DebugCurrentNrOfCells;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Genome")
+		bool bGrowBlockedByCollision;
 };

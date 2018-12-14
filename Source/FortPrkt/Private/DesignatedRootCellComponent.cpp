@@ -41,6 +41,8 @@ void UDesignatedRootCellComponent::drawCellRecursively()
 		OwnersTreeInfos->TrunkArrayThisIteration.Empty();
 		OwnersTreeInfos->LeavesArrayThisIteration.Empty();
 
+
+		OwnersTreeInfos->bGrowBlockedByCollision = true;
 	}
 
 	for (UCellComponent* c : AttachedCellChildren)

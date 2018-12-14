@@ -75,7 +75,7 @@ void UTreeInformationHolder::SetupValues()
 		TrunksInstanceComponent->bMultiBodyOverlap = true;
 		TrunksInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
 
-		TrunksInstanceComponent->SetCastShadow(false);
+	//	TrunksInstanceComponent->SetCastShadow(false);
 	}
 
 	if (StaticMeshForLeaves->IsValidLowLevel())
@@ -86,7 +86,7 @@ void UTreeInformationHolder::SetupValues()
 		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 		LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
 
-		LeavesInstanceComponent->SetCastShadow(false);
+	//	LeavesInstanceComponent->SetCastShadow(false);
 	}
 
 	MaxCellsInTreeRuntimeValue = MaxCellsInTreeBase;

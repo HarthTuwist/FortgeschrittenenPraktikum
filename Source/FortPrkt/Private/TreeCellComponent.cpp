@@ -628,6 +628,8 @@ void UTreeCellComponent::drawCellRecursively()
 				AddedPointerID = OwnersTreeInfos->TrunkArrayThisIteration.Add(this);
 			}
 
+			OwnersTreeInfos->bGrowBlockedByCollision = false;
+
 			InstancedMeshIdThisIteration = AddedInstanceID;
 		}
 
