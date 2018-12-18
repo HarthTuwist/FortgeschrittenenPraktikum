@@ -473,3 +473,61 @@ void UTreeInformationHolder::InitAndRandomTreeProperties()
 
 	SetupValues();
 }
+
+void UTreeInformationHolder::CopyValuesOf(UTreeInformationHolder * Other)
+{
+	CellDefMap.Empty();
+
+	StandardCellWidth = Other->StandardCellWidth;
+	StandardDrawLength = Other->StandardDrawLength;
+
+	LeavesCollisionCheckMultiplier = Other->LeavesCollisionCheckMultiplier;
+	LeaveGapMultiplier = Other->LeaveGapMultiplier;
+
+	MaxCellsInTreeBase = Other->MaxCellsInTreeBase;
+	AllowedCellsPerLightHitBonus = Other->AllowedCellsPerLightHitBonus;
+	AllowedCellsPerWaterHitBonus = Other->AllowedCellsPerWaterHitBonus;
+	AllowedCellsExponent = Other->AllowedCellsExponent;
+	MaxCellsHardUpperLimit = Other->MaxCellsHardUpperLimit;
+
+	SetupValues();
+
+
+
+	TArray<FString> OtherGenomeKeys;
+	Other->CellDefMap.GenerateKeyArray(OtherGenomeKeys);
+	for (FString F : OtherGenomeKeys)
+	{
+		FCellTypeDefinition* OtherDef =  Other->CellDefMap.Find(F);
+
+		FCellTypeDefinition OurDef = FCellTypeDefinition();
+
+		OurDef.CorrelationWithStandardDrawDirection = OtherDef->CorrelationWithStandardDrawDirection;
+		OurDef.HorChlCircleAngle = OtherDef->HorChlCircleAngle;
+		OurDef.HorChlCircleVarianceAngle = OtherDef->HorChlCircleVarianceAngle;
+		OurDef.DrawLengthMultiplier = OtherDef->DrawLengthMultiplier;
+		OurDef.WidthMultiplierX = OtherDef->WidthMultiplierX;
+		OurDef.bIgnoreCollisionCheck = OtherDef->bIgnoreCollisionCheck;
+		OurDef.bAttachToGround = OtherDef->bAttachToGround;
+		OurDef.bLEAVE_IsLeave = OtherDef->bLEAVE_IsLeave;
+
+		TArray<EStateTraitEnum> OtherDefDivKeys;
+		OtherDef->DivideMap.GenerateKeyArray(OtherDefDivKeys);
+		for (EStateTraitEnum E : OtherDefDivKeys)
+		{
+			FCellDivideDefinition NewDivide = FCellDivideDefinition();
+			NewDivide.DivideThreshold = OtherDef->DivideMap.Find(E)->DivideThreshold;
+			NewDivide.bDividesHorizontally = OtherDef->DivideMap.Find(E)->bDividesHorizontally;
+
+			for (FString OtherChild : OtherDef->DivideMap.Find(E)->ChildrenStateStrings)
+			{
+				NewDivide.ChildrenStateStrings.Add(OtherChild);
+			}
+
+			OurDef.DivideMap.Add(E, NewDivide);
+		}
+		
+		CellDefMap.Add(F, OurDef);
+
+	}
+}

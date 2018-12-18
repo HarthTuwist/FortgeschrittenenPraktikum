@@ -304,4 +304,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Genome")
 		bool bGrowBlockedByCollision;
+
+	UFUNCTION(BlueprintCallable, Category = "Genome")
+		void CopyValuesOf(UTreeInformationHolder* Other);
 };
