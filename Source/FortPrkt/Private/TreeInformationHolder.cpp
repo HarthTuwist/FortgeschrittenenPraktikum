@@ -463,6 +463,7 @@ void UTreeInformationHolder::InitAndRandomTreeProperties()
 
 	//LeavesCollisionCheckMultiplier = FMath::RandRange(0.1f, 1.0f);
 	LeavesCollisionCheckMultiplier = FMath::RandRange(0.1f, 0.5f);
+	LeaveGapMultiplier = 1.15f;
 
 	MaxCellsInTreeBase = 1500.0f + FMath::RandRange(-500.0f, 500.0f);
 	AllowedCellsPerLightHitBonus = 60.0f + FMath::RandRange(-30.0f, 30.0f);

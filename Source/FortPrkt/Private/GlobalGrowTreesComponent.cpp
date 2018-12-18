@@ -2,6 +2,7 @@
 
 #include "GlobalGrowTreesComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "OrganismCppBaseClass.h"
 #include "DrawDebugHelpers.h "
 
 DEFINE_LOG_CATEGORY_STATIC(LogCell_MasterGrower, Log, All);
@@ -16,7 +17,6 @@ DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:LineTrace"), STAT_FortPrktTra
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:HitInstMesh"), STAT_FortPrktTrace_HitInstMesh, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InstIsLeave"), STAT_FortPrktTrace_TextLeaves, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:InstIsNoLeave"), STAT_FortPrktTrace_TextNoLeaves, STATGROUP_FortPrkt);
-DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:GetCompArray"), STAT_FortPrktTrace_GetCompArray, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:GotComponent"), STAT_FortPrktTrace_GotComponent, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves:CantFindComponent"), STAT_FortPrktTrace_CantFindComponent, STATGROUP_FortPrkt);
 
@@ -24,7 +24,6 @@ DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps"), STAT_FortPrktWaterOverlaps,
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:ActualCheck"), STAT_FortPrktWaterOverlaps_ActualCheck, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:HitInstMesh"), STAT_FortPrktWaterOverlaps_HitInstMesh, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:InstIsCell"), STAT_FortPrktWaterOverlaps_TextCell, STATGROUP_FortPrkt);
-DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:GetCompArray"), STAT_FortPrktWaterOverlaps_GetCompArray, STATGROUP_FortPrkt);
 
 
 // Sets default values for this component's properties
@@ -95,11 +94,36 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 				if (MaxNumberOfCellsThisTick < CellsOfRoot.Num())
 				{
 					root->bCurrentlyStatic = true;
+
+					//ignore water overlap if static
+					if (TreeInfoOfRoot->LeavesInstanceComponent->IsValidLowLevel())
+					{
+						TreeInfoOfRoot->LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
+
+					}
+					
+					if (TreeInfoOfRoot->TrunksInstanceComponent->IsValidLowLevel())
+					{
+						TreeInfoOfRoot->TrunksInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
+
+					}
 				}
 			}
 
 			if (root->bCurrentlyStatic == false)
 			{
+				if (TreeInfoOfRoot->LeavesInstanceComponent->IsValidLowLevel())
+				{
+					TreeInfoOfRoot->LeavesInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
+
+				}
+
+				if (TreeInfoOfRoot->TrunksInstanceComponent->IsValidLowLevel())
+				{
+					TreeInfoOfRoot->TrunksInstanceComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
+
+				}
+
 				for (UActorComponent* cell : CellsOfRoot)
 				{
 					(Cast<UTreeCellComponent>(cell))->divideCell();
@@ -243,45 +267,43 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 					if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance"))
 					{
 						SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_TextLeaves);
+						
+						AOrganismCppBaseClass* HitComponentOwnerAsOrganism = Cast<AOrganismCppBaseClass>(HitComponent->GetOwner());
 
-						TArray<UActorComponent*> CompArray = TArray<UActorComponent*>();
-
+						if (HitComponentOwnerAsOrganism)
 						{
-							SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_GetCompArray);
-							CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
-						}
+							UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(HitComponentOwnerAsOrganism->InfoOfThis);
 
-						if (CompArray.Num() > 0)
-						{
-							UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
-
-							UTreeCellComponent* HitTreeCellComponent = HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get();
-
-							if (HitTreeCellComponent)
+							if (HitTreeInfos)
 							{
-								SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_GotComponent);
-								HitTreeCellComponent->LightThisIteration++;
+								UTreeCellComponent* HitTreeCellComponent = HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get();
 
-								if (HitTreeInfos->MaxCellsInTreeBase > 0)
+								if (HitTreeCellComponent)
 								{
-									HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerLightHitBonus;
+									SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_GotComponent);
+									HitTreeCellComponent->LightThisIteration++;
+
+									if (HitTreeInfos->MaxCellsInTreeBase > 0)
+									{
+										HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerLightHitBonus;
+									}
+
+
+									if (HitTreeInfos->bShowLightRaycastHitMarkers)
+									{
+										DrawDebugPoint(GetWorld(), Rslt.ImpactPoint, 10, FColor(220, 100, 30), true, 3.0f);
+									}
 								}
-
-
-								if (HitTreeInfos->bShowLightRaycastHitMarkers)
+								else
 								{
-									DrawDebugPoint(GetWorld(), Rslt.ImpactPoint, 10, FColor(220, 100, 30), true, 3.0f);
+									SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_CantFindComponent);
+									//TODO actually fix this instead of declaring it just Verbose
+									UE_LOG(LogCell_MasterGrower, Verbose, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s, LeavesArray.Num = %u, hit Name: %s"),
+										Rslt.Item,
+										*GetNameSafe(Rslt.Actor.Get()),
+										HitTreeInfos->LeavesArrayThisIteration.Num(),
+										*GetNameSafe(HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get()));
 								}
-							}
-							else
-							{
-								SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_CantFindComponent);
-								//TODO actually fix this instead of declaring it just Verbose
-								UE_LOG(LogCell_MasterGrower, Verbose, TEXT("Lighttrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s, LeavesArray.Num = %u, hit Name: %s"),
-									Rslt.Item,
-									*GetNameSafe(Rslt.Actor.Get()),
-									HitTreeInfos->LeavesArrayThisIteration.Num(),
-									*GetNameSafe(HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get()));
 							}
 						}
 
@@ -360,20 +382,18 @@ void UGlobalGrowTreesComponent::HandleWaterOverlaps()
 				{
 					SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_TextCell);
 
-					TArray<UActorComponent*> CompArray = TArray<UActorComponent*>();
+					AOrganismCppBaseClass* HitComponentOwnerAsOrganism = Cast<AOrganismCppBaseClass>(HitComponent->GetOwner());
+
+					if (HitComponentOwnerAsOrganism)
 					{
-						SCOPE_CYCLE_COUNTER(STAT_FortPrktWaterOverlaps_GetCompArray);
+						UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(HitComponentOwnerAsOrganism->InfoOfThis);
 
-						CompArray = HitComponent->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
-
-					}
-					if (CompArray.Num() > 0)
-					{
-						UTreeInformationHolder* HitTreeInfos = Cast<UTreeInformationHolder>(CompArray[0]);
-
-						if (HitTreeInfos->MaxCellsInTreeBase > 0)
+						if (HitTreeInfos)
 						{
-							HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerWaterHitBonus;
+							if (HitTreeInfos->MaxCellsInTreeBase > 0)
+							{
+								HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerWaterHitBonus;
+							}
 						}
 					}
 				}
