@@ -47,6 +47,10 @@ UTreeInformationHolder::UTreeInformationHolder()
 	TrunksInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("StaticMeshInstance"));
 	LeavesInstanceComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LeavesMeshInstance"));
 
+	CurrentLeafMalusMultiplier = 1.0f;
+	LeafMalusMultPerHit = 0.0f;
+	LeafMalusExponent = 1.0f;
+	LeafCurrentTickInfluence = 1.0f;
 }
 
 void UTreeInformationHolder::BeginPlay()
@@ -464,6 +468,12 @@ void UTreeInformationHolder::InitAndRandomTreeProperties()
 	//LeavesCollisionCheckMultiplier = FMath::RandRange(0.1f, 1.0f);
 	LeavesCollisionCheckMultiplier = FMath::RandRange(0.1f, 0.5f);
 	LeaveGapMultiplier = 1.15f;
+	LeafMalusMultPerHit = 0.01f;
+
+	//LeafMalusExponent = 0.5f;
+	LeafMalusExponent = FMath::RandRange(0.2f, 0.5f);
+
+	LeafCurrentTickInfluence = 3.0f;
 
 	MaxCellsInTreeBase = 1500.0f + FMath::RandRange(-500.0f, 500.0f);
 	AllowedCellsPerLightHitBonus = 60.0f + FMath::RandRange(-30.0f, 30.0f);
@@ -483,6 +493,9 @@ void UTreeInformationHolder::CopyValuesOf(UTreeInformationHolder * Other)
 
 	LeavesCollisionCheckMultiplier = Other->LeavesCollisionCheckMultiplier;
 	LeaveGapMultiplier = Other->LeaveGapMultiplier;
+	LeafMalusMultPerHit = Other->LeafMalusMultPerHit;
+	LeafMalusExponent = Other->LeafMalusExponent;
+	LeafCurrentTickInfluence = Other->LeafCurrentTickInfluence;
 
 	MaxCellsInTreeBase = Other->MaxCellsInTreeBase;
 	AllowedCellsPerLightHitBonus = Other->AllowedCellsPerLightHitBonus;

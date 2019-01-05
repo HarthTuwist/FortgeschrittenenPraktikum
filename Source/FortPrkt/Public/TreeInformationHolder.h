@@ -249,11 +249,11 @@ public:
 
 
 	//Component that stores static mesh instances for the trunks
-	UPROPERTY(BlueprintReadOnly, Category = "Genome")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		UInstancedStaticMeshComponent* TrunksInstanceComponent;
 
 	//Component that stores static mesh instances for the leaves
-	UPROPERTY(BlueprintReadOnly, Category = "Genome")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		UInstancedStaticMeshComponent* LeavesInstanceComponent;
 
 	//this maps the static mesh instance numbers to the trunk cells
@@ -307,4 +307,20 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Genome")
 		void CopyValuesOf(UTreeInformationHolder* Other);
+
+	//1 at start; gets lower when game gets zero; Not in Blueprint as 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float CurrentLeafMalusMultiplier;
+
+	//(1 - this) is multiplied with CurrentCellSizeMultiplier for every Light Hit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float LeafMalusMultPerHit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float LeafMalusExponent;
+
+	//the higher this is, the more CurrentLeafMalusMultiplier is reset towards 1 after each draw tick
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float LeafCurrentTickInfluence;
+
 };

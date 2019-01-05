@@ -130,9 +130,11 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 				}
 			}
 
+			//After divide cells
 			if (TreeInfoOfRoot != nullptr)
 			{
 				TreeInfoOfRoot->MaxCellsInTreeRuntimeValue = TreeInfoOfRoot->MaxCellsInTreeBase;
+
 			}
 		}
 	}
@@ -145,6 +147,16 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 		if (root != nullptr && root->bCurrentlyStatic == false)
 		{
 			root->drawCellRecursively();
+
+			
+			TArray<UActorComponent*> TreeInfosArray = root->GetOwner()->GetComponentsByClass(UTreeInformationHolder::StaticClass());
+			UTreeInformationHolder* TreeInfoOfRoot = TreeInfosArray.Num() > 0 ? Cast<UTreeInformationHolder>(TreeInfosArray[0]) : nullptr;
+			if (TreeInfoOfRoot != nullptr)
+			{
+				TreeInfoOfRoot->CurrentLeafMalusMultiplier = 
+					(TreeInfoOfRoot->CurrentLeafMalusMultiplier + TreeInfoOfRoot->LeafCurrentTickInfluence) /
+					(TreeInfoOfRoot->LeafCurrentTickInfluence + 1.0f);
+			}
 		}
 	}
 
@@ -286,6 +298,7 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 									if (HitTreeInfos->MaxCellsInTreeBase > 0)
 									{
 										HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerLightHitBonus;
+										HitTreeInfos->CurrentLeafMalusMultiplier = HitTreeInfos->CurrentLeafMalusMultiplier * ( 1 - HitTreeInfos->LeafMalusMultPerHit);
 									}
 
 

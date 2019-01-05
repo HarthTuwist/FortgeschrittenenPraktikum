@@ -258,16 +258,22 @@ void UTreeCellComponent::drawCellRecursively()
 
 		const float CellWidthMultiplier = DefOfThis ? DefOfThis->WidthMultiplierX : 1.0f;
 
-		const FVector Scale = FVector(
-			OwnersTreeInfos->StandardCellWidth * StandardDrawScale * CellWidthMultiplier + WeightThicknessBonus,
-			OwnersTreeInfos->StandardCellWidth * StandardDrawScale * CellWidthMultiplier + WeightThicknessBonus,
-			StandardDrawScale);
-
+		//Leave stuff
 		float PossibleLeaveGapMult = 1.0f;
+		float PossibleLeafMalusMult = 1.0f;
+
 		if (DefOfThis && DefOfThis->bLEAVE_IsLeave)
 		{
 			PossibleLeaveGapMult = OwnersTreeInfos->LeaveGapMultiplier;
+			PossibleLeafMalusMult = FMath::Pow(OwnersTreeInfos->CurrentLeafMalusMultiplier, OwnersTreeInfos->LeafMalusExponent);
 		}
+
+		const FVector Scale = FVector(
+			OwnersTreeInfos->StandardCellWidth * StandardDrawScale * CellWidthMultiplier * PossibleLeafMalusMult + WeightThicknessBonus,
+			OwnersTreeInfos->StandardCellWidth * StandardDrawScale * CellWidthMultiplier * PossibleLeafMalusMult + WeightThicknessBonus,
+			StandardDrawScale);
+
+
 
 		float ParentTransformScaleZ = ParentAsTreeCell ? ParentAsTreeCell->DrawTransform.GetScale3D().Z : 0.0f; //if no root cell, no offset
 
