@@ -101,7 +101,7 @@ public:
 		bool bIgnoreCollisionCheck;
 
 	//if true this celltype will attach to ground
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CellTypeDefinition")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellTypeDefinition")
 		bool bAttachToGround;
 
 
