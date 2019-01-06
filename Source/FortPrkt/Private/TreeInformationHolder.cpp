@@ -35,6 +35,7 @@ UTreeInformationHolder::UTreeInformationHolder()
 	LeaveGapMultiplier = 1.01f;
 
 	bShowLightRaycastHitMarkers = false;
+	bShowWindRaycastHitMarkers = false;
 	bShowGrowCollisionMarkers = false;
 
 	LeavesCollisionCheckMultiplier = 1.0f;

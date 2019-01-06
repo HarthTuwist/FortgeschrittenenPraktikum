@@ -268,6 +268,9 @@ public:
 		bool bShowLightRaycastHitMarkers;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		bool bShowWindRaycastHitMarkers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		bool bShowGrowCollisionMarkers;
 
 	//when Leaves check for collision, width will be multiplied by this

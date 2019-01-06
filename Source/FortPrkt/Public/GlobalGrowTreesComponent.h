@@ -65,8 +65,36 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
 		int32 RayTraceIterationsY;
 
-	UFUNCTION(BlueprintCallable)
-	void RayTraceToLeaves();
+	UFUNCTION(BlueprintCallable, Category = "CellGrow")
+		void RayTraceToLeaves();
+
+//wind ray trace stuff
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		FVector WindTraceOriginBottomLeft;
+
+	//length is extent!
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		FVector WindTraceOriginXDir;
+
+	//length is extent!
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		FVector WindTraceOriginYDir;
+
+	//added on origin to determine end of raycast
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		FVector WindTraceEndOffset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		int32 WindTraceIterationsX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		int32 WindTraceIterationsY;
+
+
+	UFUNCTION(BlueprintCallable, Category = "CellGrow")
+		void RayTraceWind();
+
 protected:
 	//calculates all CellStateTraits
 	void CalculateCellStateTraits();
