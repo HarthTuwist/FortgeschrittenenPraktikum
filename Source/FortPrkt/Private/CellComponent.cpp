@@ -14,7 +14,8 @@ UCellComponent::UCellComponent()
 
 	NewCellClass = this->GetClass();
 	StateString = TEXT("@@@");
-	// ...
+	
+	bIsDead = false;
 }
 
 
@@ -72,6 +73,12 @@ bool UCellComponent::shouldDivideHorizontally()
 
 void UCellComponent::divideCell()
 {
+	//don't divide if we are dead
+	if (bIsDead)
+	{
+		return;
+	}
+
 	if (shouldDivideHorizontally())
 	{
 		divideCellHorizontally();
@@ -313,4 +320,16 @@ int32 UCellComponent::CountStringInString(const FString * CountedString, const F
 	}
 
 	return outInt;
+}
+
+void UCellComponent::setDeadRecursively()
+{
+	bIsDead = true;
+	for (UCellComponent* c : AttachedCellChildren)
+	{
+		if (c != nullptr)
+		{
+			c->setDeadRecursively();
+		}
+	}
 }

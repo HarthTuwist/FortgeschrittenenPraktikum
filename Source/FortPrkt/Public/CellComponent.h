@@ -74,4 +74,11 @@ public:
 
 	//counts how often CountedString appears in BaseString
 	static int32 CountStringInString(const FString* CountedString, const FString* BaseString);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cell|Genome")
+		bool bIsDead;
+
+	//set bIsDead = true for this and all its children, grandchildren and so on
+	UFUNCTION(BlueprintCallable, Category = "Cell|Genome")
+		void setDeadRecursively();
 };

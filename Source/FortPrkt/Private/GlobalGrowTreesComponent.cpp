@@ -11,7 +11,7 @@ DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ DivideCells"), STAT_FortPrktDivideCells, STA
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ DrawCells"), STAT_FortPrktDrawCells, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ CalcTraits"), STAT_FortPrktCalcTraits, STATGROUP_FortPrkt);
 
-DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind"), STAT_FortPrktRayTraceLeaves, STATGROUP_FortPrkt);
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves"), STAT_FortPrktRayTraceLeaves, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:InLoop"), STAT_FortPrktTrace_InLoop, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:LineTrace"), STAT_FortPrktTrace_LineTrace, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:HitInstMesh"), STAT_FortPrktTrace_HitInstMesh, STATGROUP_FortPrkt);
@@ -19,6 +19,8 @@ DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:InstIsLeave"), STAT_Fort
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:InstIsNoLeave"), STAT_FortPrktTrace_TextNoLeaves, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:GotComponent"), STAT_FortPrktTrace_GotComponent, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceLeaves&Wind:CantFindComponent"), STAT_FortPrktTrace_CantFindComponent, STATGROUP_FortPrkt);
+
+DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ RayTraceWind"), STAT_FortPrktRayTraceWind, STATGROUP_FortPrkt);
 
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps"), STAT_FortPrktWaterOverlaps, STATGROUP_FortPrkt);
 DECLARE_CYCLE_STAT(TEXT("FortPrkt ~ WaterOverlaps:ActualCheck"), STAT_FortPrktWaterOverlaps_ActualCheck, STATGROUP_FortPrkt);
@@ -165,13 +167,6 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 	}
 
 	//calculate CellTraits for all cells
-	
-	{
-		SCOPE_CYCLE_COUNTER(STAT_FortPrktCalcTraits);
-
-		CalculateCellStateTraits();
-
-	}
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FortPrktRayTraceLeaves);
@@ -186,7 +181,16 @@ void UGlobalGrowTreesComponent::IterateOverRoots()
 	}
 
 	{
+		SCOPE_CYCLE_COUNTER(STAT_FortPrktRayTraceWind);
+
 		RayTraceWind();
+	}
+
+	{
+		SCOPE_CYCLE_COUNTER(STAT_FortPrktCalcTraits);
+
+		CalculateCellStateTraits();
+
 	}
 }
 
@@ -214,11 +218,12 @@ void UGlobalGrowTreesComponent::CalculateCellStateTraits()
 			{
 				UTreeCellComponent* child = Cast<UTreeCellComponent>(rootChild);
 					
-					if (child != nullptr)
-					{
-						child->CalcBurdenRecursively();
-					}
-					
+				if (child != nullptr)
+				{
+					child->CalcBurdenRecursively();
+					child->CalcWindBurdenRecursively();
+				}
+
 			}
 		}
 
@@ -414,7 +419,7 @@ void UGlobalGrowTreesComponent::RayTraceWind()
 				World->LineTraceSingleByChannel(Rslt, CurrentTraceOriginWorld, CurrentTraceEndWorld, ECollisionChannel::ECC_WorldStatic, Params, FCollisionResponseParams());
 
 			}
-			if(false)// (Rslt.bBlockingHit == true)
+			if(Rslt.bBlockingHit == true)
 			{
 				UInstancedStaticMeshComponent* HitComponent = Cast<UInstancedStaticMeshComponent>(Rslt.Component.Get());
 
@@ -422,8 +427,14 @@ void UGlobalGrowTreesComponent::RayTraceWind()
 				{
 					SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_HitInstMesh);
 					//TODO implement system so we can hit another cell than trees? Identify with name?
-					if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance"))
+					if (GetNameSafe(HitComponent) == TEXT("LeavesMeshInstance") || GetNameSafe(HitComponent) == TEXT("StaticMeshInstance"))
 					{
+						bool bHitIsLeave = true;
+						if (GetNameSafe(HitComponent) == TEXT("StaticMeshInstance"))
+						{
+							bHitIsLeave = false;
+						}
+
 						SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_TextLeaves);
 
 						AOrganismCppBaseClass* HitComponentOwnerAsOrganism = Cast<AOrganismCppBaseClass>(HitComponent->GetOwner());
@@ -434,19 +445,22 @@ void UGlobalGrowTreesComponent::RayTraceWind()
 
 							if (HitTreeInfos)
 							{
-								UTreeCellComponent* HitTreeCellComponent = HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get();
+								UTreeCellComponent* HitTreeCellComponent;
+		
+								if (bHitIsLeave)
+								{
+									HitTreeCellComponent = HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get();
+								}
+								else
+								{
+									HitTreeCellComponent = HitTreeInfos->TrunkArrayThisIteration[Rslt.Item].Get();
+								}
+								
 
 								if (HitTreeCellComponent)
 								{
 									SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_GotComponent);
-									HitTreeCellComponent->LightThisIteration++;
-
-									if (HitTreeInfos->MaxCellsInTreeBase > 0)
-									{
-										HitTreeInfos->MaxCellsInTreeRuntimeValue += HitTreeInfos->AllowedCellsPerLightHitBonus;
-										HitTreeInfos->CurrentLeafMalusMultiplier = HitTreeInfos->CurrentLeafMalusMultiplier * (1 - HitTreeInfos->LeafMalusMultPerHit);
-									}
-
+									HitTreeCellComponent->LocalWindForceBurden++;
 
 									if (HitTreeInfos->bShowWindRaycastHitMarkers)
 									{
@@ -457,11 +471,13 @@ void UGlobalGrowTreesComponent::RayTraceWind()
 								{
 									SCOPE_CYCLE_COUNTER(STAT_FortPrktTrace_CantFindComponent);
 									//TODO actually fix this instead of declaring it just Verbose
-									UE_LOG(LogCell_MasterGrower, Verbose, TEXT("Windtrace: Can't find Leave TreeCellComponent according to number %u for hit actor: %s, LeavesArray.Num = %u, hit Name: %s"),
+									UE_LOG(LogCell_MasterGrower, Verbose, TEXT("Windtrace: Can't find %s TreeCellComponent according to number %u for hit actor: %s, According Array.Num = %u, hit Name: %s"),
+										bHitIsLeave ? TEXT("Leaf") : TEXT("Trunk"),
 										Rslt.Item,
 										*GetNameSafe(Rslt.Actor.Get()),
-										HitTreeInfos->LeavesArrayThisIteration.Num(),
-										*GetNameSafe(HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get()));
+										bHitIsLeave ? HitTreeInfos->LeavesArrayThisIteration.Num() : HitTreeInfos->TrunkArrayThisIteration.Num(),
+										bHitIsLeave ? *GetNameSafe(HitTreeInfos->LeavesArrayThisIteration[Rslt.Item].Get()) : *GetNameSafe(HitTreeInfos->TrunkArrayThisIteration[Rslt.Item].Get())
+									);
 								}
 							}
 						}
@@ -470,18 +486,15 @@ void UGlobalGrowTreesComponent::RayTraceWind()
 
 					else
 					{
-						if (GetNameSafe(HitComponent) != TEXT("StaticMeshInstance"))
-						{
-							UE_LOG(LogCell_MasterGrower, Log, TEXT("Windtrace hit InstancedStaticMesh != 'LeavesMeshInstance' and 'StaticMeshInstance', is this supposed to happen? Actor: %s, Component: %s"),
-								*GetNameSafe(HitComponent->GetOwner()),
-								*GetNameSafe(HitComponent));
-						}
+						UE_LOG(LogCell_MasterGrower, Log, TEXT("Windtrace hit InstancedStaticMesh != 'LeavesMeshInstance' and 'StaticMeshInstance', is this supposed to happen? Actor: %s, Component: %s"),
+							*GetNameSafe(HitComponent->GetOwner()),
+							*GetNameSafe(HitComponent));
 					}
 				}
 			}
 
 
-			DrawDebugLine(
+			/* DrawDebugLine(
 				World,
 				CurrentTraceOriginWorld,
 				//LineTraceDirectionVector.RotateAngleAxis(x * RayTraceAngleXStep, RelativeXAxis) + GetOwner()->GetActorLocation(),
@@ -492,7 +505,7 @@ void UGlobalGrowTreesComponent::RayTraceWind()
 				0,
 				3.0f
 			);
-
+			*/
 		}
 	}
 }

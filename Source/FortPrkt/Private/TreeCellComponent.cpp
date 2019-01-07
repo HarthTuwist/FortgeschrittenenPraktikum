@@ -67,6 +67,8 @@ void UTreeCellComponent::CopyPropertiesFromParent(UCellComponent * Parent)
 	//always set this properties to standard values
 	IterationsSinceCreation = 0;
 	LightThisIteration = 0;
+	TotalWindForceBurden = 0;
+	LocalWindForceBurden = 0;
 
 }
 
@@ -166,6 +168,12 @@ TArray<FString> UTreeCellComponent::GetDivideSubstrings(FString InString)
 
 void UTreeCellComponent::drawCellRecursively()
 {
+	//don't draw this or it's children if we are dead
+	if (bIsDead)
+	{
+		return;
+	}
+
 	//throw away old visuals
 	if (DrawnComponent)
 	{
@@ -838,4 +846,41 @@ int32 UTreeCellComponent::CalcBurdenRecursively()
 	
 	WeightBurden = outValue;
 	return outValue;
+}
+
+int32 UTreeCellComponent::CalcWindBurdenRecursively()
+{
+	int32 outValue = 0;
+
+	for (UCellComponent* child : AttachedCellChildren)
+	{
+		UTreeCellComponent* childAsTreeCell = Cast<UTreeCellComponent>(child);
+
+		if (childAsTreeCell != nullptr)
+		{
+			outValue += childAsTreeCell->CalcWindBurdenRecursively();
+		}
+		outValue += LocalWindForceBurden; //add LocalWindForceBurden
+	}
+	//if no children weight is 0
+
+	TotalWindForceBurden = outValue;
+
+	//calculate if cell should die
+	if (ShouldWindBurdenKillThis())
+	{
+		setDeadRecursively();
+	}
+
+	//return
+	return outValue;
+}
+
+bool UTreeCellComponent::ShouldWindBurdenKillThis()
+{
+	if (LocalWindForceBurden > 2)
+	{
+		return true;
+	}
+	return false;
 }

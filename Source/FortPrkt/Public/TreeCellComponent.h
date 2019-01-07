@@ -81,6 +81,21 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Cellproperties")
 		int32 InstancedMeshIdThisIteration;
 
+///////////////////////////Wind Force
+
+	//Burden without children cells
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cellproperties")
+		int32 LocalWindForceBurden;
+
+	//Burden including burden of children cells
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cellproperties")
+		int32 TotalWindForceBurden;
+
+	//calculates the burden by this cell by calling this function of the children
+	int32 CalcWindBurdenRecursively();
+
+	UFUNCTION(BlueprintPure, Category = "Cellproperties")
+		bool ShouldWindBurdenKillThis();
 
 	////////////////////
 	//CellStateTraits, eg. properties that have an enum and can influence division
