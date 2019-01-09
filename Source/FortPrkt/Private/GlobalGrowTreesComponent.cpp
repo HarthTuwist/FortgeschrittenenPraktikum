@@ -242,6 +242,10 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 		return;
 	}
 
+	//clear possible spawn locations
+	PossibleLightTreeSpawnLocsThisTick.Empty();
+
+
 	UWorld* World = GetOwner()->GetWorld();
 	const FName TraceTag("SightTrace");
 
@@ -344,7 +348,12 @@ void UGlobalGrowTreesComponent::RayTraceToLeaves()
 						}
 					}
 				}
-					
+				
+				else if (Rslt.Component.Get()->GetCollisionResponseToChannel(ECC_GameTraceChannel3) == ECR_Block)
+				{
+					PossibleLightTreeSpawnLocsThisTick.Add(Rslt.ImpactPoint);
+				}
+
 				//TODO this is bullshit
 				//Cast<UTreeCellComponent>(Rslt.Actor.Get())->LightThisIteration++;
 			}

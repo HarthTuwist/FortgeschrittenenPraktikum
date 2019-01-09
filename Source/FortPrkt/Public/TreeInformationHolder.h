@@ -322,8 +322,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		float LeafMalusExponent;
 
+	//used in UTreeCellComponent::ShouldWindBurdenKillThis(); higher value means more kills
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float WindBurdenKillMultiplier;
+
+	//used in UTreeCellComponent::ShouldWindBurdenKillThis(); higher value means more kills
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
+		float WindBurdenKillExponent;
+
 	//the higher this is, the more CurrentLeafMalusMultiplier is reset towards 1 after each draw tick
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Genome")
 		float LeafCurrentTickInfluence;
-
 };

@@ -878,9 +878,12 @@ int32 UTreeCellComponent::CalcWindBurdenRecursively()
 
 bool UTreeCellComponent::ShouldWindBurdenKillThis()
 {
-	if (LocalWindForceBurden > 2)
+	if (OwnersTreeInfos != nullptr)
 	{
-		return true;
+		if (FMath::Pow((OwnersTreeInfos->WindBurdenKillMultiplier * LocalWindForceBurden), OwnersTreeInfos->WindBurdenKillExponent) > WeightBurden)
+		{
+			return true;
+		}
 	}
 	return false;
 }

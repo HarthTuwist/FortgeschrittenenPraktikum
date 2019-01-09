@@ -52,6 +52,9 @@ UTreeInformationHolder::UTreeInformationHolder()
 	LeafMalusMultPerHit = 0.0f;
 	LeafMalusExponent = 1.0f;
 	LeafCurrentTickInfluence = 1.0f;
+
+	WindBurdenKillExponent = 1.0f;
+	WindBurdenKillMultiplier = 1.0f;
 }
 
 void UTreeInformationHolder::BeginPlay()
@@ -482,6 +485,8 @@ void UTreeInformationHolder::InitAndRandomTreeProperties()
 	AllowedCellsExponent = FMath::RandRange(0.5f, 1.0f);
 	MaxCellsHardUpperLimit = 10000.0f;
 
+	WindBurdenKillExponent = 1.3f;
+
 	SetupValues();
 }
 
@@ -503,6 +508,9 @@ void UTreeInformationHolder::CopyValuesOf(UTreeInformationHolder * Other)
 	AllowedCellsPerWaterHitBonus = Other->AllowedCellsPerWaterHitBonus;
 	AllowedCellsExponent = Other->AllowedCellsExponent;
 	MaxCellsHardUpperLimit = Other->MaxCellsHardUpperLimit;
+
+	WindBurdenKillExponent = Other->WindBurdenKillExponent;
+	WindBurdenKillMultiplier = Other->WindBurdenKillMultiplier;
 
 	SetupValues();
 

@@ -65,6 +65,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
 		int32 RayTraceIterationsY;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		bool bGenerateTreeSpawnLocationsFromLight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CellGrow")
+		TArray<FVector> PossibleLightTreeSpawnLocsThisTick;
+
 	UFUNCTION(BlueprintCallable, Category = "CellGrow")
 		void RayTraceToLeaves();
 
