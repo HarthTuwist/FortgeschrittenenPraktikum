@@ -33,13 +33,13 @@ Our method is an approach designed to be fully robust, limiting how much ''worst
 
 \section{Related Work}
 
-For this project, there is related work mainly in two categories: On the one hand in the sense of simulated ecosystems, which is obviously a wide subject as many different works could be summarized under this term, and on the other hand in the context of procedural tree generation, which is a lot more a canonical topic of research.
+For this project, there is related work mainly in two categories: On the one hand in the sense of simulated ecosystems, which is obviously a wide subject as many different works could be summarized under this term, and on the other hand in the context of procedural tree generation, which is a lot more of a canonical topic of research.
 
 \subsection{Simulated Ecosystems}
 
 Many games have smaller or bigger element of life cycle simulation, such as the unsophisticated tree grow features in Minecraft (CITE), or various features of the first three stages in Spore, but they usually have very limited degrees of freedom, or do not use extensive procedural generation at all. Additional, these ''systems'' usually have easily predictable rules, and they don't form chaotic, i.e. complex, systems as they are mainly meant as an element of game design and not as a point of interest in itself.
 
-Some games even declared their main focus to lie on ecosystems or evolution. Two arbitrary examples to name would be CellLab (CITE), a mobile game where players have to manipulate time-based cell division rules to create simple multicellular organisms with different properties, and ECO (CITE), a Minecraft-esque sandbox game which lays it's focus on simulating the ecological impact, e.g. exhaust gas pollution, of the players actions. The concepts used there are usually high-level though, and simulate various features of biological organisms by very specific ad hoc features instead of a system that produces this behaviors as special cases of general rules.
+Some games even declared their main focus to lie on ecosystems or evolution. Two arbitrary examples to name would be CellLab (CITE), a mobile game where players have to manipulate time-based cell division rules to create simple multicellular organisms with different properties, and ECO (CITE), a Minecraft-esque sandbox game which lays it's focus on simulating the ecological impact, e.g. exhaust gas pollution, of the players actions. The concepts used there are usually high-level though, and simulate various features of biological organisms by very specific ad hoc features instead of a system that makes this behaviors emerge as special cases of general rules.
 
 \subsection{Procedural plant generation}
 One prominent example for procedural plant generation would be SpeedTree (CITE), which can generate very realistically looking results, and gets used by 3D Artists for this purpose a lot, but requires extensive manual supervision and is by design focused on the visuals of the results, and not on a simulation of the underlying principles. 
@@ -111,7 +111,7 @@ The following behaviors are simulated:
 	\end{figure}
 \end{itemize}
 As hinted above, the numerous collision features of Unreal were used extensively. On the one hand directly to check for overlapping collision shapes (e.g. for the water mechanics) or in the form of ''Raycasts/Line Traces'' that determine where a point that travels on a given line segment hits something. This was, for example, used for the light and wind mechanics, which are modeled by around 10.000 Raycasts each grow iteration.
-One possible influence of light is shown in figure \ref{fig:GrowToLight}. The light comes from the left, and the source is very close to the tree on the left. This tree has noticeably more leafs and children than the one further in the background, even though the ''genetics'' / properties of the plants are the same. Additionally, it can be clearly seen how the tree divided more on the site facing the light source, and the image also shows nicely the vastly different possible diameters of trunk cells depending on the number of children they have, and the effect of the trees bending upwards as they have a positive correlation with gravity. 
+One possible influence of light is shown in figure \ref{fig:GrowToLight}. The light comes from the left, and the source is very close to the tree on the left. This tree has noticeably more leafs and children than the one further in the background, even though the ''genetics'' / properties of the plants are the same. Additionally, it can be clearly seen how the tree divided more on the site facing the light source. The image also shows nicely the vastly different possible diameters of cells depending on the number of children they have, and the effect of the trees bending upwards as they have a positive correlation with gravity, too. 
 
 \begin{figure}
  	 \centering
@@ -134,29 +134,46 @@ In it's very fundamentals, the used division schemes are based on three states, 
 
 For the branches, the cells with state $H$ are the leafs, and in these sense scheme (\ref{eq:HLight}) defines the way a leaf divides if a certain amount of light hits it in a given iteration. (\ref{eq:HTime}) defines leaf division independent of light. In general is $k > k'$, to establish the behavior of trees growing towards light, in the sense that they divide more into this direction. Roots follow the same scheme, with different settings though, and their even spread is only in a plane and not full 3D space.
 
-Regarding (\ref{eq:F}), there are actually multiple $F$ states, to allow a slowing down of branch grow (i.e branches that divided out of a $H$ very recently have a faster division rate than ''older'' ones). In scheme (\ref{eq:K}), the time is 1 iteration, while it is a plant property in scheme (\ref{eq:F}) and (\ref{eq:HTime}).
+Regarding (\ref{eq:F}), there are actually multiple $F$ states, to allow a slowing down of branch grow (i.e cells that divided out of a $H$ in very recent iterations have a faster division rate than ''older'' ones). In scheme (\ref{eq:K}), the time is $1$ iteration, while it is a plant property in scheme (\ref{eq:F}) and (\ref{eq:HTime}).
 
-\section{Results}
+\section{Observations}
+\subsection{Distribution And Controls}
+The distributed compile of the project is constituted of two parts: One map where it is possible to set values (e.g. leaf size) for a given tree at runtime and see the distinct possible results, and one map 
 
+Switching from one map to the other is done by pressing \textit{M} on the Keyboard. The control of the character (''Mannequin'') is the same for both maps: jumping and flying is done by pressing \textit{Space}, and the movement itself is done via industry-standard \textit{WASD} / mouse controls. \textit{P} toggles the rendering of leafs. \textit{I} updates the tree from the input values on the Value-Manipulation-Map and adds $10$ rendering iterations on the forest map. \textit{O} rerandomes the values of the single tree, and resets the whole forest on the respective maps.
 
+\subsection{Interactions}
 
-For closeness to reality and performance reasons, the number of cells is limited
-Man sieht: wasser BILD
-man sieht: licht BILD
+For closeness to reality and performance reasons, the number of cells per organism needs to be limited. When simulating multiple or many trees at once, we used this constraint as an additional basis for interaction between organisms and their environment: If tree leafs get hit by light, or tree cells overlap with water, the total amount of cells allowed in the corresponding organism is increased. The influence of light on allowed cell count can be clearly seen in the already mentioned figure \ref{fig:GrowToLight}, and without the influence of water on the tree in the back, the differences would be even more notable.
 
-For Leafs this is actually a property - some randomed trees have this behavior, others do not - it turned out that trees with very dense leafs are very hard to model with leaf collision enabled.
+\begin{figure}
+ 	 \centering
+ 	    \includegraphics[width=0.6\textwidth]{SS_BIGTree.png}
+ 	 \caption{Massive tree taken out of an earlier version}
+ 	 \label{fig:BIGTree}
+\end{figure}
 
-Interessanter Unterschied der Bäume im Wasser und der Bäume im Licht
+On the forest map, new trees appear where light hits the ground with randomed properties. Before, trees were spawned on random locations on the ground. As the light source is very close to the stage, this leads to the algorithm terminating after a few hundred iterations. This change also had one complex interaction we didn't see coming beforehand: Very big trees, like the one seen in figure \ref{fig:BIGTree}, seem to be impossible or at least very improbable now. As far as we can see, these trees occurred if a plant got spawned in the water with a negative correlation with gravity such that the tree bended towards the light, getting both bonuses at once. This isn't possible to this extent otherwise, as the water on the stage is a small distance away from the light source. Now, the spawn positions in the water closest to the light are no longer possible, as the rim of the water basin blocks the light Raycast to these spawn locations. Even though this connection wasn't examined super thoroughly, it definitely resembles an intriguing interaction.
 
-Einfluss von Licht auf Bäume, zwei Varianten
+\begin{figure}
+ 	 \centering
+ 	    \includegraphics[width=0.6\textwidth]{SS_StageWithWind.png}
+ 	 \caption{Terminated algorithm with visible influences of wind}
+ 	 \label{fig:StageWind}
+\end{figure}
 
-Blätter Downscaling
+\begin{figure}
+ 	 \centering
+ 	    \includegraphics[width=0.6\textwidth]{SS_StageTallTrees.png}
+ 	 \caption{Difference of tree shape in water and near to light (reduced wind)}
+ 	 \label{fig:StageTallTrees}
+\end{figure}
 
-Gesamtmap gerandomed
+Figure \ref{fig:BIGTree} also shows the limits of the collision detection system: As it is only activated on leafs and trunks without attachment children, division of cells closer to the root might brake the system. Especially plants bending with gravity show this behavior and grow through the stage's floor. Figure \ref{fig:StageWind} and figure \ref{fig:StageTallTrees} show two possible states after the algorithm terminated. Right in the center of figure \ref{fig:StageWind} one is also able to see cut of trunks and branches: those are in the corridor of the wind and didn't have the stability to resist it. Figure \ref{fig:StageTallTrees} on the other hand shows another interesting result: the different grow patterns of trees in the water and trees near the light source. The latter do not divide their leaves as often, thus the relevance of their trunks growth is more dominant, leading to trees growing into the sky rather than increasing width. Also, there are way more extreme examples, but those are obviously even more cumbersome to depict.
 
-Große Bäume die über die Seite wachsen/Wurzeln, die das tun???
+All in all, the shown results are definitely a positive indication that the desired complex and surprising behavior is possible on the basis of the developed system.
 
-\section{Ausblick}
+\section{Conclusion}
 In this paper, we presented an approach to abstract plant growth in a non-standard way, based on even spreads, self-similarity, and influencing ecological factors. From our perspective, there seem to be two possible directions that seem interesting to improve on: On the one hand, the built system resembles a basis to simulate whole ecosystems in an interactable manner, and could be extended to include some form of nutrient circulation. For example, organisms could take some sort of resource from the ground for grow, which then cannot be used by others plants. The resource would be returned to the ground by tree dead (by age, illness or similar simulated causes) and decomposers, that feed on the leftovers of other organisms and recycle the nutrients for the ecosystem. Later, even completely differently constructed organisms could be added to the system, i.e. ''animals'' that move around the stage and consume parts of plants.
 
 On the other hand, the range of possibilities describable in the terms of chapter \ref{cpt:EvenSelfSim} could really only be scratched at the surface. So, another natural way to expand the project / research would be to try to recreate other plantal features with the developed algorithms by different divide properties, or to improve on those algorithms to yield more satisfying results (especially for $\alpha_\text{max} - \alpha_\text{min}$ big). The same holds for taking actual shapes into account when calculating even splits, and extensions to allow non-punctiform origins (e.g. for pine cone shaped grow behavior).

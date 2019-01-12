@@ -474,8 +474,8 @@ void UTreeInformationHolder::InitAndRandomTreeProperties()
 	LeaveGapMultiplier = 1.15f;
 	LeafMalusMultPerHit = 0.01f;
 
-	//LeafMalusExponent = 0.5f;
-	LeafMalusExponent = FMath::RandRange(0.2f, 0.5f);
+	LeafMalusExponent = 0.0f;
+	//LeafMalusExponent = FMath::RandRange(0.2f, 0.5f);
 
 	LeafCurrentTickInfluence = 3.0f;
 
