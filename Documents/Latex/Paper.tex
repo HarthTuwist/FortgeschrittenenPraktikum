@@ -7,60 +7,11 @@
 \usepackage[T1]{fontenc}
 \usepackage[ngerman]{babel}
 
-\usepackage{textcomp}
-\newcommand{\textlongs}{{%
-	\fontencoding{TS1}\fontfamily{lmr}\selectfont\char115%
-}}
+\usepackage{hyperref}
+\usepackage{graphicx} 
 
-\usepackage{sgame, tikz} % Game theory packages
-\usetikzlibrary{trees, calc} % For extensive form games
-\usepackage{subfig} % Manipulation and reference of small or sub figures and tables
-
-
-\newcommand*{\threesim}{%
-\mathrel{\vcenter{\offinterlineskip
-\hbox{$\sim$}\vskip-.35ex\hbox{$\sim$}\vskip-.35ex\hbox{$\sim$}}}}
-
-\usepackage{pifont}
-
-\newcommand{\TengwarTest}{\mathchoice
-{\tengmag{1.0}\text{\Troomen} \tengmag{1.0}}
-{\tengmag{1.0}\text{\Troomen} \tengmag{1.0}}
-{\tengmag{0.8}\text{\Troomen} \tengmag{1.0}}
-{\tengmag{0.5}\text{\Troomen} \tengmag{1.0}}
-}
-
-
-\catcode`\@ = 11
-\def \teng@tempmag {1.0}
-\newcommand{\tengmagMult}[1]{
-    \FPmul{\teng@tempmag}{\teng@mag}{#1}%
-    %\FPround{\teng@tempmag}{\teng@tempmag}{0}%
-    \tengmag{\teng@tempmag}
-}
-
-
-\newcommand{\TMath}[1]{\mathchoice
-{\tengmagMult{1.0}\text{#1} }%\tengmag{1.0}}
-{\tengmagMult{1.0}\text{#1} }%\tengmag{1.0}}
-{\tengmagMult{0.8}\text{#1} }%\tengmag{1.0}}
-{\tengmagMult{0.5}\text{#1} }%\tengmag{1.0}}
-}
-\catcode`\@ = 12
-
-\newcommand{\MTformen}{\TMath{\Tformen}}
-\newcommand{\MTnuumen}{\TMath{\Tnuumen}}
-\newcommand{\MTmalta}{\TMath{\Tmalta}}
-
-\newcommand{\MTesse}{\TMath{\Tesse}}
-\newcommand{\MTsilme}{\TMath{\Tsilme}}
-\newcommand{\MTlambe}{\TMath{\Tlambe}}
-\newcommand{\MTroomen}{\TMath{\Troomen}}
-
-\newcommand{\MTTrightcurl}{\TMath{\TTrightcurl}}
-\newcommand{\MTTthreedots}{\TMath{\TTthreedots}}
-
-\newcommand{\RPS}{Rock-\-paper-\-scissors}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
@@ -81,12 +32,19 @@ Obviously, different use cases require vastly different approaches. The most imp
 Our method is an approach designed to be fully robust, limiting how much ''worst case'' results can deviate from desired outputs, while still allowing the system to do as many unexpected things as possible. How we tried to tackle this problem can be found in chapter XX. The goal was to recreate behavior found in real-life biological grow, namely by modeling rules that govern the development of biological organisms, and less by working with arbitrary constraints that lead to creations that look similar to the originals but because of different reasons than those.
 
 \section{Related Work}
-Different approaches have been taken on rendering plants, 
 
-One example would be SpeedTree, which can generate very realistically looking results, and gets used by 3D Artists for this purpose a lot, but achieves this by doing 
-Lindenmayer-Systems work by mapping states of a generated object to 
--the 
+For this project, there is related work mainly in two categories: On the one hand in the sense of simulated ecosystems, which is obviously a wide subject as many different works could be summarized under this term, and on the other hand in the context of procedural tree generation, which is a lot more a canonical topic of research.
 
+\subsection{Simulated Ecosystems}
+
+Many games have smaller or bigger element of life cycle simulation, such as the unsophisticated tree grow features in Minecraft (CITE), or various features of the first three stages in Spore, but they usually have very limited degrees of freedom, or do not use extensive procedural generation at all. Additional, these ''systems'' usually have easily predictable rules, and they don't form chaotic, i.e. complex, systems as they are mainly meant as an element of game design and not as a point of interest in itself.
+
+Some games even declared their main focus to lie on ecosystems or evolution. Two arbitrary examples to name would be CellLab (CITE), a mobile game where players have to manipulate time-based cell division rules to create simple multicellular organisms with different properties, and ECO (CITE), a Minecraft-esque sandbox game which lays it's focus on simulating the ecological impact, e.g. exhaust gas pollution, of the players actions. The concepts used there are usually high-level though, and simulate various features of biological organisms by very specific ad hoc features instead of a system that produces this behaviors as special cases of general rules.
+
+\subsection{Procedural plant generation}
+One prominent example for procedural plant generation would be SpeedTree (CITE), which can generate very realistically looking results, and gets used by 3D Artists for this purpose a lot, but requires extensive manual supervision and is by design focused on the visuals of the results, and not on a simulation of the underlying principles. 
+
+The state of the art for generation tool seem to be Lindenmayer-Systems(or L-Systems), which are probably also a part of the SpeedTree-algorithms, and those also gave the initial ideas for our plant generation. In it's very basic form, L-Systems are string-manipulating formalisms, where letters in a string are substituted by a given rule set in consecutive iterations, and after a certain amount of iterations a 2D or 3D shape is drawn from the resulting string. As L-Systems are very suitable to express self-similarity, very good visual results can be achieved, but those systems do not model ecological influences, and aren't fit for the use of randoming with many degrees of freedom. See for example (CITE) for in-depth usage examples, and chapter \ref{cpt:ImplGeneral} for the steps we took away from L-Systems.
 
 \section{Implementation}
 \subsection{Engine, Language \& Code}
@@ -94,7 +52,7 @@ The implementation was done in Unreal Engine 4 (UE4 or UE in short), a framework
 
 Most of the code was done in C++, as especially the generation of the organisms is very performance-critical. Blueprints, the visual scripting language of Unreal, was only used occasionally for prototyping and non-heavy-lifting work, e.g. keyboard input handling and variable/property setup.
 
-\subsection{General}
+\subsection{General} \label{cpt:ImplGeneral}
 The design idea at the very fundamentals was to implement grow logic on the basis of cells, and understand organisms as a collection of connected cells that interact with each other, but are otherwise mostly independent. Cells then can transform or divide into other cell types, a process which forms complex organisms in the end. This is, in a kind, a derivation from Lindenmayer-Systems and indeed would it be possible to encode all cell states in such a way that it would fulfill the respective definition. Yet the resulting strings would be very long, and interactions based on positioning in a 3D space are far from the way L-Systems usually work, so it makes a lot of practical sense to drop the formal constraints of thinking in those limiting terms. 
 
 Plant cells always have an ''attachment parent'', not in the sense of being a predecessor in terms of cell division, but in being directly ''below''. Accordingly, there is a root cell for all plants, and all other cells are ''children'' or ''children of children'' and so on of the root cell. Constructed that way, the plant can generate it's visuals recursively, where every cell first draws itself and then it's child or children. This way, position changes (e.g. cell divisions) can easily impact positioning of cells at the treetop.
@@ -103,13 +61,27 @@ Different cell types may have different properties (size, whether the cell is in
 Accordingly, each cell needs to be represented by a single mesh - which imposes a problem, as Unreal usually allows around 1200 draw calls per frame if 60 fps are supposed to be hit.Thus, UE projects can easily be CPU-bottlenecked by draw calls, even though the amount of rendered polygons isn’t exhausting the capabilities of the graphics card. So geometry instancing was used, in the form of Instanced Static Meshes (CITE), which is one of the UE variants of this practice. Instanced Static Meshes render the same 3D model multiple times per draw call, improving the rendering speed by several orders of magnitude. On the downside, the difference between instances is limited to scale, size and rotation, and the system is noticeably less flexible than Spline Meshes (CITE), which would commonly be used to represent linearly arranged meshes.
 
 \subsection{Plant Grow As Evenly Spread Self-Similarity} \label{cpt:EvenSelfSim}
-If we look at plant structures so different as rose blossoms (CITE), dandelion seed heads or tree branching (CITE), it turns out that many of those follow a somewhat even spread, and the shapes of the various arrangements are describable by different degrees of freedom. In general, this freedom is radially symmetric in grow direction, so a full description may be given by two angles $\alpha_\text{min}$ and $\alpha_\text{max}$, defining the freedom of the distribution to deviate from the grow direction. The objects growing out of the origin then take positions such that the minimal distance between two objects is minimized - an even spread.
+
+\begin{figure} 
+ 	\centering
+ 		\includegraphics[width=0.3\textwidth]{Pic_DogRose.png}
+ 	\caption{Rosa canina (Dog Rose)  \cite{WikipediaDogRose}}
+ 	\label{fig:DogRose}
+\end{figure}
+
+\begin{figure} 
+ 	\centering
+ 		\includegraphics[width=0.3\textwidth]{Pic_Tree.png}
+ 	\caption{Biological tree branching structure  \cite{WikipediaTree}}
+ 	\label{fig:IRLTree}
+\end{figure}
+
+If we look at plant structures so different as rose blossoms (figure \ref{fig:DogRose}), dandelion seed heads or tree branching (figure fig \ref{fig:IRLTree}), it turns out that many of those follow a somewhat even spread, and the shapes of the various arrangements are describable by different degrees of freedom. In general, this freedom is radially symmetric in grow direction, so a full description may be given by two angles $\alpha_\text{min}$ and $\alpha_\text{max}$, defining the freedom of the distribution to deviate from the grow direction. The objects growing out of the origin then take positions such that the minimal distance between two objects is minimized - an even spread.
 
 For punctiform origins, like those used in this project, the two angles define two circles on a sphere, and the directional possibilities are the set of vectors pointing from the origin to a point on the sphere between the two circles. Thus, a dandelion-like structure corresponds to a minimum deviation of $\alpha_\text{min} = 0$ (i.e. directions can be arbitrary close to the grow direction) and a maximum deviation of 
-$\alpha_\text{max} \approx 90^\circ$. For ''flat'' layouts, like those of the petals of the rose in (CITE), 
-is $\alpha_\text{max} - \alpha_\text{min} \approx 0$ (or small, if there are different layers of petals).
+$\alpha_\text{max} \approx 90^\circ$. For ''flat'' layouts, like those of the petals of the rose in figure \ref{fig:DogRose}, is $\alpha_\text{max} - \alpha_\text{min} \approx 0$ (or small, if there are different layers of petals).
 
-If the number of objects that grow out of a given origin becomes small, such as in the tree in (CITE), this principle is less obvious on first glance, but it remains a special case of $\alpha_\text{max} - \alpha_\text{min} \approx 0$. In the case of trees, the ''objects'' that grow out of the origins are actually branches, and can branch, i.e. form new origins, in itself. This is the self-similarity in the title of this chapter, and this is why L-Systems can simulate tree-shapes as well, and why the golden ratio, being an expression of self-similarity, can be found in countless different contexts in biology.
+If the number of objects that grow out of a given origin becomes small, such as in the tree in figure \ref{fig:IRLTree}, this principle is less obvious on first glance, but it remains a special case of $\alpha_\text{max} - \alpha_\text{min} \approx 0$. In the case of trees, the ''objects'' that grow out of the origins are actually branches, and can branch, i.e. form new origins, in itself. This is the self-similarity in the title of this chapter, and this is why L-Systems can simulate tree-shapes as well, and why the golden ratio, being an expression of self-similarity, can be found in countless different contexts in biology.
 
 The practical implementation of these principles obviously imposes difficulties, which were only solved by approximation in this project. For example, the distance of objects growing out of origins was approximated by the ''distance'' of grow directions only, and the algorithm used to generate these directions only yields semi-satisfactory results for $\alpha_\text{min} \neq \alpha_\text{max}$. More variety in basic forms was cut in scope in favor of factors of interacting grow - see chapter \ref{cptr:Influencing}.
 
@@ -123,28 +95,46 @@ The following behaviors are simulated:
 	\item There is a cone-shaped light source, leading plants to grow in the direction of the light as they divide faster on the faced site, have smaller leaves and to have more allowed cells in general
 	\item The diameter of cells grows when a higher ''weight'' rest on them, i.e. when they have many ''attachment-descendants''
 	\item The grow direction can have a positive or negative correlation with gravity, leading to trees that always grow upward, and trees that ''bend over'', even off the stage
-	\item Cells divisions cannot result in children that collide with external objects or other cells of the plant. Picture (CITE) shows a model plant with collision-check enabled (left) and disabled
-	\item Certain cells - in this case the roots - grow on the ground and up to walls when they hit them (CITE)
+	\item Cells divisions cannot result in children that collide with external objects or other cells of the plant. Figure \ref{fig:SelfCollision} shows an example
+		\begin{figure} 
+ 		 \centering
+ 		    \includegraphics[width=0.6\textwidth]{SS_SelfCollision.png}
+ 		 \caption{Roots growing on the floor and up a wall}
+ 		 \label{fig:SelfCollision}
+	\end{figure}
+	\item Certain cells - in this case the roots - can grow attached to the ground and up to walls when they hit them (figure \ref{fig:RootsOnFloor})
+	\begin{figure} 
+ 		 \centering
+ 		    \includegraphics[width=0.6\textwidth]{SS_Roots.png}
+ 		 \caption{Self-collision enabled (left) and disabled}
+ 		 \label{fig:RootsOnFloor}
+	\end{figure}
 \end{itemize}
+As hinted above, the numerous collision features of Unreal were used extensively. On the one hand directly to check for overlapping collision shapes (e.g. for the water mechanics) or in the form of ''Raycasts/Line Traces'' that determine where a point that travels on a given line segment hits something. This was, for example, used for the light and wind mechanics, which are modeled by around 10.000 Raycasts each grow iteration.
+One possible influence of light is shown in figure \ref{fig:GrowToLight}. The light comes from the left, and the source is very close to the tree on the left. This tree has noticeably more leafs and children than the one further in the background, even though the ''genetics'' / properties of the plants are the same. Additionally, it can be clearly seen how the tree divided more on the site facing the light source, and the image also shows nicely the vastly different possible diameters of trunk cells depending on the number of children they have, and the effect of the trees bending upwards as they have a positive correlation with gravity. 
 
-As hinted above, the numerous collision features of Unreal were used extensively. On the one hand directly to check for overlapping collision shapes (e.g. for the water mechanics) or in the form of ''Raycasts/Line Traces'' that determine where a point that travels on a given line segment hits something. This was, for example, used for the light and wind mechanics.
-One possible influence of light is shown in Picture (CITE). The light comes from the left, and the source is very close to the tree on the left. This tree has noticeably more leafs and children than the one further in the background, even though the ''genetics'' / properties of the plants are the same. Additionally, it can be clearly seen how the tree divided more on the site facing the light source, and the image also shows nicely the vastly different possible diameters of trunk cells depending on the number of children they have, and the effect of the trees bending upwards as they have a positive correlation with gravity. 
-
-
+\begin{figure}
+ 	 \centering
+ 	    \includegraphics[width=0.6\textwidth]{SS_GrowToLight.png}
+ 	 \caption{Influence of different light conditions on plants with identical genetics}
+ 	 \label{fig:GrowToLight}
+\end{figure}
 
 \subsection{Paramteter / gewähltes teilungsverfahren}
-All branches divide out of leafs - leafs divide after some amount of time, and instantly (i.e. on the next iteration of recalculating cell models) if they are hit by a certain amount of light raycasts  
+In it's very fundamentals, the used division schemes are based on three states, $K$, $F$ and $H$ ($A \rightarrow B$ means that $A$ divides into $B$):
 
-The base structure of the division was the following: 
-This system was inspired by (CITE)
+\begin{align}
+	&K \xrightarrow {\text{time}}, F, H \quad \text{(vertical)} \label{eq:K} \\
+	&F \xrightarrow {\text{time}}, F, F \quad \text{(vertical)} \label{eq:F}\\
+	&H \xrightarrow {\text{light}}, \overbrace{ K, \ldots K}^{k} \quad \text{(horizontal)}  \label{eq:HLight} \\
+	&H \xrightarrow {\text{time}}, \overbrace{ K, \ldots K}^{k'} \quad \text{(horizontal)} \label{eq:HTime}
+\end{align}
 
-PROPERTIES RANDOMED
+''Vertical'' division means that resulting cells are aligned such that every cell has one attachment child, and one attachment parent (i.e. the grow is ''straight''). ''Horizontal'' division means that all new cells have the same parent as the initial cell, and are spread evenly.
 
-There was a system implemented to random the parameters of the system - how many children
-dark
-light
-etc
+For the branches, the cells with state $H$ are the leafs, and in these sense scheme (\ref{eq:HLight}) defines the way a leaf divides if a certain amount of light hits it in a given iteration. (\ref{eq:HTime}) defines leaf division independent of light. In general is $k > k'$, to establish the behavior of trees growing towards light, in the sense that they divide more into this direction. Roots follow the same scheme, with different settings though, and their even spread is only in a plane and not full 3D space.
 
+Regarding (\ref{eq:F}), there are actually multiple $F$ states, to allow a slowing down of branch grow (i.e branches that divided out of a $H$ very recently have a faster division rate than ''older'' ones). In scheme (\ref{eq:K}), the time is 1 iteration, while it is a plant property in scheme (\ref{eq:F}) and (\ref{eq:HTime}).
 
 \section{Results}
 
@@ -167,30 +157,15 @@ Gesamtmap gerandomed
 Große Bäume die über die Seite wachsen/Wurzeln, die das tun???
 
 \section{Ausblick}
-Mehr Interaktionen
-Merh Ausblick -> Nur minimalen Anteil der Vielfalt der Ausgangsformen verwendet
-Ganzes Ökosystem
+In this paper, we presented an approach to abstract plant growth in a non-standard way, based on even spreads, self-similarity, and influencing ecological factors. From our perspective, there seem to be two possible directions that seem interesting to improve on: On the one hand, the built system resembles a basis to simulate whole ecosystems in an interactable manner, and could be extended to include some form of nutrient circulation. For example, organisms could take some sort of resource from the ground for grow, which then cannot be used by others plants. The resource would be returned to the ground by tree dead (by age, illness or similar simulated causes) and decomposers, that feed on the leftovers of other organisms and recycle the nutrients for the ecosystem. Later, even completely differently constructed organisms could be added to the system, i.e. ''animals'' that move around the stage and consume parts of plants.
 
-The work done in this project was merely a starting point.
+On the other hand, the range of possibilities describable in the terms of chapter \ref{cpt:EvenSelfSim} could really only be scratched at the surface. So, another natural way to expand the project / research would be to try to recreate other plantal features with the developed algorithms by different divide properties, or to improve on those algorithms to yield more satisfying results (especially for $\alpha_\text{max} - \alpha_\text{min}$ big). The same holds for taking actual shapes into account when calculating even splits, and extensions to allow non-punctiform origins (e.g. for pine cone shaped grow behavior).
 
-In two directions - at the beginning
-It resembles a basis to simulate whole ecosystems in an interactable manner, and could be extended towards  etc , or later even moving organisms (i.e. ''animals'') that move around and consume parts of 
+In these two directions, countless different features might be added. Maybe it even seems as this work is merely a starting point, and the extended applications definitely seem very interesting - be it in a more close to reality simulation-oriented context, or as an element of an actual game.
 
-nutrient circulation
-Tree dead, by age, illness or similar things, and decomposers, that feed on the leftovers and recycle the nutrietients for the ecosystem.
-
-On the other hand, the range of possibilities describable in the terms of chapter \ref{cpt:EvenSelfSim} could only be scratched at the surface. 
-Especially 
-\section{Used Variables}
-\begin{enumerate}
-	\item $\mathcal{M}_P$ Mindset of the Player $P$
-	\item $\mathbb{S}$ Seifert-Space
-	\item $\MTlambe$ (Lambe) Game Feature Space TODO DOES LAMBE CONTAIN FEATURE COMBINATIONS THAT HAVE NO CORRESPONDING Z?????
-	\item $\MTsilme(f) $ (Silme of f) Structuredness of the function $f$
-	\item $T$ A partial strategy (Transformation)
-	\item $\widehat{T} = T_1 \cdot T_2 \cdot T_3 \cdot ... T_n$ The Transformation that equals the concatenation of ''all'' (depending on the context) Transformations (e.g. is $\widehat{T}_P$ the concatenation of all Transformations of Player $P$
-	\item $\MTroomen(\widehat{T})$ (Roomen of T hat) Short for $\MTroomen(\{\widehat{T}\}) =\MTroomen(\{{T_1, T_2, T_3 ... T_n}\}) $ \footnote{Note that this is a game-theoretical equivalency as $\widehat{T} = T_1 \cdot T_2 \cdot T_3 \cdot ... T_n$ and not just the same thing}
-	\item $\mathbb{G} := G | \forall G': G \notin G' $ Allgame. All Games except itself are part of and representable in $\mathbb{G}$. We can view it as the representation of ''the Universe''. $\mathbb{G}$ has no Playerslots \footnote{At least according to the prevailing opinion. Elon Musk certainly doesn't agree.}
-\end{enumerate}
-
+\begin{thebibliography}{9}
+	\bibitem{WikipediaDogRose}  \href{https://de.wikipedia.org/wiki/Rosen#/media/File:Hundsrose.jpg}{Wikipedia: Hundsrose}, viewed on 01/12/19
+	\bibitem{WikipediaTree}  \href{https://upload.wikimedia.org/wikipedia/commons/a/a5/Baum_im_Sossusvlei.jpg}{Wikipedia: Baum im Sossusvlei}, viewed on 01/12/19
+\end{thebibliography}
 \end{document}
+
