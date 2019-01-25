@@ -2,14 +2,14 @@
 \BOOKMARK [1][-]{section.2}{Related Work}{}% 2
 \BOOKMARK [2][-]{subsection.2.1}{Simulated Ecosystems}{section.2}% 3
 \BOOKMARK [2][-]{subsection.2.2}{Procedural Plant Generation}{section.2}% 4
-\BOOKMARK [1][-]{section.3}{Implementation}{}% 5
-\BOOKMARK [2][-]{subsection.3.1}{Engine, Language \046 Code}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.2}{General}{section.3}% 7
-\BOOKMARK [2][-]{subsection.3.3}{Plant Growth by Even Spread and Self-Similarity}{section.3}% 8
-\BOOKMARK [2][-]{subsection.3.4}{Modelled Behaviors}{section.3}% 9
-\BOOKMARK [2][-]{subsection.3.5}{Paramteter / Division Rules}{section.3}% 10
-\BOOKMARK [2][-]{subsection.3.6}{Distribution and Controls}{section.3}% 11
-\BOOKMARK [1][-]{section.4}{Results}{}% 12
-\BOOKMARK [2][-]{subsection.4.1}{Interactions and Discussion}{section.4}% 13
-\BOOKMARK [2][-]{subsection.4.2}{Performance}{section.4}% 14
-\BOOKMARK [1][-]{section.5}{Conclusion}{}% 15
+\BOOKMARK [1][-]{section.3}{Approach}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{Plant Growth by Even Spread and Self-Similarity}{section.3}% 6
+\BOOKMARK [1][-]{section.4}{Implementation}{}% 7
+\BOOKMARK [2][-]{subsection.4.1}{Engine, Language \046 Code}{section.4}% 8
+\BOOKMARK [2][-]{subsection.4.2}{Modelled Behaviors}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.3}{Paramteter / Division Rules}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.4}{Distribution and Controls}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{Results}{}% 12
+\BOOKMARK [2][-]{subsection.5.1}{Complex Interactions}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.2}{Performance}{section.5}% 14
+\BOOKMARK [1][-]{section.6}{Conclusion}{}% 15

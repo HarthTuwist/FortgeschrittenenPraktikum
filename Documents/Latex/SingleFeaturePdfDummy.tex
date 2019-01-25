@@ -1,0 +1,36 @@
+\documentclass[11pt, abstract=on]{scrartcl}
+\usepackage[formal]{tengwarscript}
+\pdfmapfile{=tengwarscript.map}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+\usepackage{hyperref}
+\usepackage{graphicx} 
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\begin{center}
+\begin{tabular}{ | l | l l |}
+\hline
+	& Run $A$ & Run $B$\\
+\cline{2-3}
+  Meshes Calculation \& Setup  & 109.137 ms & 17.924 ms\\
+  Cell Division in Data Structure & 51.654 ms & 4.699 ms\\
+  Raytrace for Light & 19.551 ms & 15.450 ms\\
+  Raytrace for Wind & 8.910 ms & 9.611 ms \\
+  Weight \& Wind Burden & 2.146 ms & 4.769 ms\\
+  Water Influence & 0.016 ms & 1.064 ms\\
+  Total Iteration Time & 191.473 ms & 53.595 ms\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\end{document}
+
