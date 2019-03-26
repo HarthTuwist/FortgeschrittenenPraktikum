@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/W32TeX) (preloaded format=pdflatex 2017.7.24)  25 JAN 2019 02:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/W32TeX) (preloaded format=pdflatex 2017.7.24)  26 MAR 2019 02:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -760,119 +760,128 @@ File: t1cmss.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 ) [1
 
 ] [2]
-<Pic_DogRose.png, id=94, 652.4375pt x 601.24625pt>
+<Pic_DogRose.png, id=92, 652.4375pt x 601.24625pt>
 File: Pic_DogRose.png Graphic file (type png)
 <use Pic_DogRose.png>
-Package pdftex.def Info: Pic_DogRose.png  used on input line 56. on input line 
-56.
+Package pdftex.def Info: Pic_DogRose.png  used on input line 54. on input line 
+54.
 Package pdftex.def Info: Requested size: 125.47794pt x 115.63246pt on input lin
-e 56.
-<Pic_Tree.png, id=97, 501.875pt x 501.875pt>
+e 54.
+<Pic_Tree.png, id=95, 501.875pt x 501.875pt>
 File: Pic_Tree.png Graphic file (type png)
 <use Pic_Tree.png>
-Package pdftex.def Info: Pic_Tree.png  used on input line 63. on input line 63.
+Package pdftex.def Info: Pic_Tree.png  used on input line 61. on input line 61.
 
 Package pdftex.def Info: Requested size: 125.47794pt x 125.47609pt on input lin
-e 63.
-LaTeX Font Info:    Try loading font information for U+msa on input line 68.
+e 61.
+<Fig_SphereInOne.png, id=99, 1014.79124pt x 618.31pt>
+File: Fig_SphereInOne.png Graphic file (type png)
+<use Fig_SphereInOne.png>
+Package pdftex.def Info: Fig_SphereInOne.png  used on input line 68. on input l
+ine 68.
+Package pdftex.def Info: Requested size: 250.95587pt x 152.90718pt on input lin
+e 68.
+LaTeX Font Info:    Try loading font information for U+msa on input line 69.
 
 (e:/texlive/2017/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 68.
+LaTeX Font Info:    Try loading font information for U+msb on input line 69.
 
 (e:/texlive/2017/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) [3 <./Pic_DogRose.png (PNG copy)>] [4 <./Pic_Tree.png>]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 86.
+) [3 <./Pic_DogRose.png (PNG copy)> <./Pic_Tree.png>] [4 <./Fig_SphereInOne.png
+>]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 93.
 
 (e:/texlive/2017/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 86.
-<SS_SelfCollision.png, id=128, 1927.2pt x 1084.05pt>
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 93.
+ [5]
+<SS_SelfCollision.png, id=136, 1927.2pt x 1084.05pt>
 File: SS_SelfCollision.png Graphic file (type png)
 <use SS_SelfCollision.png>
-Package pdftex.def Info: SS_SelfCollision.png  used on input line 94. on input 
-line 94.
+Package pdftex.def Info: SS_SelfCollision.png  used on input line 101. on input
+ line 101.
 Package pdftex.def Info: Requested size: 250.95587pt x 141.16302pt on input lin
-e 94.
-<SS_Roots.png, id=130, 1927.2pt x 1043.9pt>
+e 101.
+<SS_Roots.png, id=138, 1927.2pt x 1043.9pt>
 File: SS_Roots.png Graphic file (type png)
 <use SS_Roots.png>
-Package pdftex.def Info: SS_Roots.png  used on input line 101. on input line 10
-1.
+Package pdftex.def Info: SS_Roots.png  used on input line 108. on input line 10
+8.
 Package pdftex.def Info: Requested size: 250.95587pt x 135.93475pt on input lin
-e 101.
- [5] [6 <./SS_SelfCollision.png> <./SS_Roots.png>]
-<SS_GrowToLight.png, id=145, 1927.2pt x 1043.9pt>
+e 108.
+ [6 <./SS_SelfCollision.png> <./SS_Roots.png>]
+<SS_GrowToLight.png, id=149, 1927.2pt x 1043.9pt>
 File: SS_GrowToLight.png Graphic file (type png)
 <use SS_GrowToLight.png>
-Package pdftex.def Info: SS_GrowToLight.png  used on input line 111. on input l
-ine 111.
+Package pdftex.def Info: SS_GrowToLight.png  used on input line 118. on input l
+ine 118.
 Package pdftex.def Info: Requested size: 250.95587pt x 135.93475pt on input lin
-e 111.
+e 118.
  [7 <./SS_GrowToLight.png>]
-LaTeX Font Info:    Try loading font information for T1+cmtt on input line 135.
+LaTeX Font Info:    Try loading font information for T1+cmtt on input line 142.
 
 
 (e:/texlive/2017/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
-<SS_BIGTree.png, id=167, 1927.2pt x 1043.9pt>
+<SS_BIGTree.png, id=171, 1927.2pt x 1043.9pt>
 File: SS_BIGTree.png Graphic file (type png)
 <use SS_BIGTree.png>
-Package pdftex.def Info: SS_BIGTree.png  used on input line 145. on input line 
-145.
+Package pdftex.def Info: SS_BIGTree.png  used on input line 152. on input line 
+152.
 Package pdftex.def Info: Requested size: 250.95587pt x 135.93475pt on input lin
-e 145.
-<SS_StageWithWind.png, id=169, 1927.2pt x 1084.05pt>
+e 152.
+ [8 <./SS_BIGTree.png>]
+<SS_StageWithWind.png, id=181, 1927.2pt x 1084.05pt>
 File: SS_StageWithWind.png Graphic file (type png)
 <use SS_StageWithWind.png>
-Package pdftex.def Info: SS_StageWithWind.png  used on input line 154. on input
- line 154.
+Package pdftex.def Info: SS_StageWithWind.png  used on input line 161. on input
+ line 161.
 Package pdftex.def Info: Requested size: 250.95587pt x 141.16302pt on input lin
-e 154.
-<SS_StageTallTrees.png, id=170, 1617.04124pt x 908.39375pt>
+e 161.
+<SS_StageTallTrees.png, id=182, 1617.04124pt x 908.39375pt>
 File: SS_StageTallTrees.png Graphic file (type png)
 <use SS_StageTallTrees.png>
-Package pdftex.def Info: SS_StageTallTrees.png  used on input line 161. on inpu
-t line 161.
+Package pdftex.def Info: SS_StageTallTrees.png  used on input line 168. on inpu
+t line 168.
 Package pdftex.def Info: Requested size: 250.95587pt x 140.9659pt on input line
- 161.
- [8] [9 <./SS_BIGTree.png> <./SS_StageWithWind.png> <./SS_StageTallTrees.png>] 
-[10]
-Underfull \hbox (badness 3930) in paragraph at lines 198--199
+ 168.
+
+[9 <./SS_StageWithWind.png> <./SS_StageTallTrees.png>] [10]
+Underfull \hbox (badness 3930) in paragraph at lines 211--212
 [][]\T1/cmr/m/n/10.95 Wikimedia: ``Hund-srose.jpg'', com-mons.wikimedia.org/wik
 i/File:Hundsrose.jpg[],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 201--202
+Underfull \hbox (badness 10000) in paragraph at lines 214--215
 [][]\T1/cmr/m/n/10.95 ``Make Some-thing Un-real'', unrealengine.com/en-US/what-
 is-unreal-engine-4[],
  []
 
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 219.
 [11]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 212.
- [12]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 212.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 219.
  (./Paper.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 212.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 212.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 219.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 219.
 Package rerunfilecheck Info: File `Paper.out' has not changed.
-(rerunfilecheck)             Checksum: 0886157C2CF1E137F27066D329520B55;941.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 212.
+(rerunfilecheck)             Checksum: EDD557BB8BA837C92251167B56CFD791;944.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 219.
  ) 
 Here is how much of TeX's memory you used:
- 9672 strings out of 492990
- 145779 string characters out of 6136334
- 333277 words of memory out of 5000000
- 13034 multiletter control sequences out of 15000+600000
+ 9678 strings out of 492990
+ 145914 string characters out of 6136334
+ 332425 words of memory out of 5000000
+ 13039 multiletter control sequences out of 15000+600000
  16623 words of font info for 44 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,18n,51p,8852b,446s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 41i,18n,51p,8852b,398s stack positions out of 5000i,500n,10000p,200000b,80000s
 {e:/texlive/2017/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}<e:/texl
 ive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><e:/texlive/2017/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><e:/texlive/2017/texmf-dis
@@ -887,10 +896,10 @@ t/fonts/type1/public/cm-super/sfsx1000.pfb><e:/texlive/2017/texmf-dist/fonts/ty
 pe1/public/cm-super/sfsx1200.pfb><e:/texlive/2017/texmf-dist/fonts/type1/public
 /cm-super/sfsx1440.pfb><e:/texlive/2017/texmf-dist/fonts/type1/public/cm-super/
 sftt1095.pfb>
-Output written on Paper.pdf (12 pages, 12683387 bytes).
+Output written on Paper.pdf (11 pages, 12759426 bytes).
 PDF statistics:
  281 PDF objects out of 1000 (max. 8388607)
- 233 compressed objects within 3 object streams
+ 232 compressed objects within 3 object streams
  52 named destinations out of 1000 (max. 500000)
- 161 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 166 words of extra memory for PDF output out of 10000 (max. 10000000)
 
